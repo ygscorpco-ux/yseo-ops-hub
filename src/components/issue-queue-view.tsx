@@ -6,6 +6,7 @@ import { ArrowUpRightIcon, SearchIcon } from "lucide-react";
 
 import { ChannelBadge } from "@/components/channel-badge";
 import { EmptyState } from "@/components/empty-state";
+import { IssuePlaybookDialog } from "@/components/issue-playbook-dialog";
 import { SectionCard } from "@/components/section-card";
 import { StateChip } from "@/components/state-chip";
 import { StatusBadge } from "@/components/status-badge";
@@ -218,6 +219,10 @@ export function IssueQueueView({ entries }: { entries: IssueQueueEntry[] }) {
                           상세
                           <ArrowUpRightIcon className="ml-1 inline size-3.5" />
                         </Link>
+                        <IssuePlaybookDialog
+                          issue={entry.issue}
+                          customerName={entry.customer.name}
+                        />
                         {entry.suggestionSet.length > 0 ? (
                           <SuggestionReviewDialog
                             customerName={entry.customer.name}

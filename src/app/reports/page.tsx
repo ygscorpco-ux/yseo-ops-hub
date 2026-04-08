@@ -1,9 +1,14 @@
+import { MonthlyReportBatchPanel } from "@/components/monthly-report-batch-panel";
 import { PageHeader } from "@/components/page-header";
 import { ReportListView } from "@/components/report-list-view";
 import { listReportEntries } from "@/lib/yseo/selectors";
+import { getMonthlyReportBatchStatus } from "@/lib/yseo/report-batch";
 
 export default async function ReportsPage() {
-  const entries = await listReportEntries();
+  const [entries, batchStatus] = await Promise.all([
+    listReportEntries(),
+    getMonthlyReportBatchStatus(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -26,6 +31,13 @@ export default async function ReportsPage() {
           </p>
         </div>
       </section>
+
+      <MonthlyReportBatchPanel
+        initialStatus={{
+          status: "ok",
+          ...batchStatus,
+        }}
+      />
 
       <ReportListView entries={entries} />
     </div>

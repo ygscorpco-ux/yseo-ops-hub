@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ChannelBadge } from "@/components/channel-badge";
 import { CustomerConnectionEditor } from "@/components/customer-connection-editor";
+import { IssuePlaybookDialog } from "@/components/issue-playbook-dialog";
 import { PageHeader } from "@/components/page-header";
 import { ReportPreviewDialog } from "@/components/report-preview-dialog";
 import { SectionCard } from "@/components/section-card";
@@ -187,9 +188,15 @@ export default async function CustomerDetailPage({
           <div className="space-y-4">
             {detail.openIssues.map((issue) => (
               <div key={issue.id} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge value={issue.severity} />
-                  <ChannelBadge channel={issue.channelType} />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge value={issue.severity} />
+                    <ChannelBadge channel={issue.channelType} />
+                  </div>
+                  <IssuePlaybookDialog
+                    issue={issue}
+                    customerName={detail.customer.name}
+                  />
                 </div>
                 <div className="mt-2 font-medium text-slate-950">{issue.title}</div>
                 <p className="mt-1 text-sm leading-6 text-slate-600">{issue.summary}</p>
