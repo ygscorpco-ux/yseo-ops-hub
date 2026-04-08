@@ -119,6 +119,11 @@ export default async function CustomerDetailPage({
           eyebrow="채널 연결"
           title="채널 연결 상태"
           description="외부 채널은 하나의 서비스처럼 보이되, 연결 상태와 오류는 채널별로 분리해 보여줍니다."
+          action={
+            <Link href="/" className={compactSecondaryActionClass}>
+              네이버 sync 보기
+            </Link>
+          }
         >
           <div className="space-y-3">
             {detail.connections.map((connection) => (
@@ -137,6 +142,20 @@ export default async function CustomerDetailPage({
                     <p className="text-sm leading-6 text-slate-600">
                       {connection.syncHeadline}
                     </p>
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <StatusBadge value={connection.syncStatus} />
+                      <span className="text-xs leading-5 text-slate-500">
+                        마지막 동기화 {formatRelativeTime(connection.lastSyncAt)}
+                      </span>
+                      <span className="text-xs leading-5 text-slate-500">
+                        인증 {connection.authMethod === "api-key" ? "API key" : "OAuth"}
+                      </span>
+                      {connection.lastErrorCode ? (
+                        <span className="text-xs leading-5 text-rose-600">
+                          오류 {connection.lastErrorCode}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                   <StatusBadge value={connection.connectionStatus} />
                 </div>

@@ -3,6 +3,7 @@ import { FileTextIcon, TriangleAlertIcon } from "lucide-react";
 
 import { ChannelBadge } from "@/components/channel-badge";
 import { MetricCard } from "@/components/metric-card";
+import { NaverSyncPanel } from "@/components/naver-sync-panel";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
@@ -58,6 +59,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <NaverSyncPanel />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {dashboard.metrics.map((metric) => (
