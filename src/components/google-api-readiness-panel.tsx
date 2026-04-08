@@ -53,7 +53,7 @@ function ReadinessCard({
         </div>
         {selectedRef ? (
           <div>
-            <span className="font-semibold text-slate-700">선택된 대상:</span>{" "}
+            <span className="font-semibold text-slate-700">최근 선택:</span>{" "}
             {selectedRef}
           </div>
         ) : null}
@@ -81,7 +81,7 @@ export async function GoogleApiReadinessPanel() {
     <SectionCard
       eyebrow="Google API"
       title="Search Console / Business Profile"
-      description="구글 채널은 같은 OAuth 앱을 쓰지만, Search Console은 2단계, Business Profile은 승인 이후 3단계로 붙습니다."
+      description="Google 채널은 같은 OAuth 앱을 공유합니다. Search Console은 지금 바로, Business Profile은 승인 이후 단계적으로 붙입니다."
     >
       <div className="flex flex-wrap items-center gap-2">
         <StateChip

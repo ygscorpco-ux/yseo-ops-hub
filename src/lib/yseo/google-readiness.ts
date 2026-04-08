@@ -1,12 +1,11 @@
 import "server-only";
 
 import type { ConnectionStatus } from "@/lib/yseo/types";
+import { BusinessProfileAdapter, getBusinessProfileCredentials } from "@/lib/yseo/adapters";
 import {
-  BusinessProfileAdapter,
-  getBusinessProfileCredentials,
-  getSearchConsoleCredentials,
-  SearchConsoleAdapter,
-} from "@/lib/yseo/adapters";
+  getSearchConsoleConnectionSummary,
+  isGoogleOAuthConfigured,
+} from "@/lib/yseo/google-search-console";
 
 export interface GoogleChannelReadiness {
   channel: "search-console" | "business-profile";
@@ -31,7 +30,7 @@ export interface GoogleIntegrationReadiness {
 
 function getOAuthSummary(oauthAppConfigured: boolean) {
   return oauthAppConfigured
-    ? "Google OAuth 앱은 준비됐습니다. 이제 채널별 연결만 마치면 됩니다."
+    ? "Google OAuth 앱이 준비됐습니다. 이제 고객별 Search Console 연결을 시작할 수 있습니다."
     : "Google OAuth 앱이 아직 설정되지 않았습니다. Search Console과 Business Profile 모두 여기서 시작합니다.";
 }
 
@@ -55,21 +54,19 @@ function getStatusLabel(
 }
 
 export async function getGoogleIntegrationReadiness(): Promise<GoogleIntegrationReadiness> {
-  const searchConsoleAdapter = new SearchConsoleAdapter();
   const businessProfileAdapter = new BusinessProfileAdapter();
-  const searchConsoleCredentials = getSearchConsoleCredentials();
   const businessProfileCredentials = getBusinessProfileCredentials();
-  const [searchConsoleValidation, businessProfileValidation] =
-    await Promise.all([
-      searchConsoleAdapter.validateConnection(),
-      businessProfileAdapter.validateConnection(),
-    ]);
+  const [searchConsoleSummary, businessProfileValidation] = await Promise.all([
+    getSearchConsoleConnectionSummary(),
+    businessProfileAdapter.validateConnection(),
+  ]);
 
-  const oauthAppConfigured = Boolean(
-    searchConsoleCredentials.clientId &&
-      searchConsoleCredentials.clientSecret &&
-      searchConsoleCredentials.redirectUri,
-  );
+  const oauthAppConfigured = isGoogleOAuthConfigured();
+  const searchConsoleStatus: ConnectionStatus = !oauthAppConfigured
+    ? "blocked"
+    : searchConsoleSummary.connectedCustomers > 0
+      ? "connected"
+      : "attention";
 
   return {
     oauthAppConfigured,
@@ -78,29 +75,27 @@ export async function getGoogleIntegrationReadiness(): Promise<GoogleIntegration
       channel: "search-console",
       label: "Google Search Console",
       roadmapStage: "2단계 결합",
-      currentStatus: searchConsoleValidation.connectionStatus,
-      currentLabel: getStatusLabel(searchConsoleValidation.connectionStatus, {
+      currentStatus: searchConsoleStatus,
+      currentLabel: getStatusLabel(searchConsoleStatus, {
         blocked: "OAuth 앱 필요",
-        attention: "연결 대기",
-        connected: "실연동 준비 완료",
+        attention: "고객 연결 대기",
+        connected: "고객 연결됨",
       }),
-      summary: searchConsoleValidation.message,
+      summary: !oauthAppConfigured
+        ? "Google OAuth 앱이 아직 설정되지 않았습니다."
+        : searchConsoleSummary.connectedCustomers > 0
+          ? `Search Console에 ${searchConsoleSummary.connectedCustomers}개 고객이 연결되어 있습니다.`
+          : "OAuth 앱은 준비됐지만 아직 연결된 Search Console property가 없습니다.",
       nextStep: !oauthAppConfigured
-        ? "Google Cloud에서 OAuth 웹 앱을 만들고 redirect URI를 등록합니다."
-        : !searchConsoleCredentials.refreshToken
-          ? "운영자 Google 계정으로 OAuth 동의를 완료하고 refresh token을 저장합니다."
-          : !searchConsoleCredentials.siteUrl
-            ? "대표 property를 선택해 site URL을 저장합니다."
-            : "다음 구현에서 Search Analytics와 URL Inspection 수집을 활성화합니다."
-        ,
-      readyForLiveSync: Boolean(
-        oauthAppConfigured &&
-          searchConsoleCredentials.refreshToken &&
-          searchConsoleCredentials.siteUrl,
-      ),
+        ? "Google Cloud에서 OAuth 앱을 만들고 redirect URI를 등록합니다."
+        : searchConsoleSummary.connectedCustomers === 0
+          ? "고객 상세에서 Search Console 연결을 시작하고 property를 선택합니다."
+          : "다음 단계에서 Search Analytics 정기 수집과 URL Inspection을 붙입니다.",
+      readyForLiveSync:
+        oauthAppConfigured && searchConsoleSummary.connectedCustomers > 0,
       implementedNow:
-        "이번 배포에서는 OAuth 준비 상태와 property 선택 필요 여부까지 점검합니다.",
-      selectedRef: searchConsoleCredentials.siteUrl,
+        "고객별 OAuth 로그인, property 선택, 7일 Search Analytics 검증 수집까지 가능합니다.",
+      selectedRef: searchConsoleSummary.latestProperty,
       docsUrl: "https://developers.google.com/webmaster-tools/v1/searchanalytics/query",
     },
     businessProfile: {
@@ -111,20 +106,19 @@ export async function getGoogleIntegrationReadiness(): Promise<GoogleIntegration
       currentLabel: getStatusLabel(businessProfileValidation.connectionStatus, {
         blocked: businessProfileCredentials.approved ? "OAuth 설정 필요" : "승인 필요",
         attention: "계정 연결 대기",
-        connected: "실연동 준비 완료",
+        connected: "연결 준비 완료",
       }),
       summary: businessProfileValidation.message,
       nextStep: !oauthAppConfigured
-        ? "Google OAuth 앱부터 준비합니다."
+        ? "Google OAuth 앱을 먼저 준비합니다."
         : !businessProfileCredentials.approved
           ? "Google Business Profile API 프로젝트 승인을 먼저 받아야 합니다."
           : !businessProfileCredentials.refreshToken
-            ? "운영자 Google 계정으로 OAuth 동의를 완료합니다."
-            : !businessProfileCredentials.accountId ||
-                !businessProfileCredentials.locationId
-              ? "사용할 account/location을 선택해 저장합니다."
-              : "3단계 구현에서 리뷰와 성과 수집을 활성화합니다."
-        ,
+            ? "운영용 Google 계정으로 OAuth 동의를 완료합니다."
+            : !businessProfileCredentials.accountId || !businessProfileCredentials.locationId
+              ? "사용할 account/location을 선택하고 저장합니다."
+              : "3단계 구현에서 리뷰와 성과 수집을 붙입니다."
+      ,
       readyForLiveSync: Boolean(
         oauthAppConfigured &&
           businessProfileCredentials.approved &&
@@ -133,14 +127,12 @@ export async function getGoogleIntegrationReadiness(): Promise<GoogleIntegration
           businessProfileCredentials.locationId,
       ),
       implementedNow:
-        "이번 배포에서는 승인 필요 여부와 계정 연결 준비 상태를 점검합니다.",
+        "승인 필요 여부와 Google 계정/위치 연결 준비 상태까지 확인할 수 있습니다.",
       selectedRef:
-        businessProfileCredentials.accountId &&
-        businessProfileCredentials.locationId
+        businessProfileCredentials.accountId && businessProfileCredentials.locationId
           ? `${businessProfileCredentials.accountId} / ${businessProfileCredentials.locationId}`
           : undefined,
-      docsUrl:
-        "https://developers.google.com/my-business/reference/performance/rest",
+      docsUrl: "https://developers.google.com/my-business/reference/performance/rest",
     },
   };
 }

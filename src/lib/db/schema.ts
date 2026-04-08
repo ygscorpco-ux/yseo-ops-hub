@@ -160,3 +160,24 @@ export const syncRunsTable = pgTable("yseo_sync_runs", {
   errorSummary: text("error_summary"),
   requiresOperatorReview: boolean("requires_operator_review").default(false).notNull(),
 });
+
+export const channelCredentialsTable = pgTable("yseo_channel_credentials", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  channelConnectionId: varchar("channel_connection_id", { length: 64 }).notNull(),
+  credentialType: varchar("credential_type", { length: 32 }).notNull(),
+  encryptedPayload: text("encrypted_payload").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const oauthSessionsTable = pgTable("yseo_oauth_sessions", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  provider: varchar("provider", { length: 32 }).notNull(),
+  customerId: varchar("customer_id", { length: 64 }).notNull(),
+  status: varchar("status", { length: 16 }).notNull(),
+  encryptedPayload: text("encrypted_payload"),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});

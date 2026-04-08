@@ -9,6 +9,7 @@ import { ReportPreviewDialog } from "@/components/report-preview-dialog";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
 import { SuggestionReviewDialog } from "@/components/suggestion-review-dialog";
+import { isGoogleOAuthConfigured } from "@/lib/yseo/google-search-console";
 import { getCustomerDetailView } from "@/lib/yseo/selectors";
 import {
   compactSecondaryActionClass,
@@ -16,12 +17,20 @@ import {
 } from "@/lib/yseo/ui";
 import { formatRelativeTime } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function CustomerDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ customerId: string }>;
+  searchParams: Promise<{
+    googleConnected?: string;
+    googleOAuthError?: string;
+  }>;
 }) {
   const { customerId } = await params;
+  const { googleConnected, googleOAuthError } = await searchParams;
   const detail = await getCustomerDetailView(customerId);
 
   if (!detail) {
@@ -38,6 +47,10 @@ export default async function CustomerDetailPage({
   const naverConnection = detail.connections.find(
     (connection) => connection.channelType === "naver-searchad",
   );
+  const searchConsoleConnection = detail.connections.find(
+    (connection) => connection.channelType === "search-console",
+  );
+  const googleOAuthConfigured = isGoogleOAuthConfigured();
 
   return (
     <div className="space-y-6">
@@ -67,6 +80,30 @@ export default async function CustomerDetailPage({
         }
       />
 
+      {googleConnected === "search-console" ? (
+        <section className="rounded-2xl border border-emerald-200 bg-emerald-50/70 px-4 py-4">
+          <div className="space-y-1">
+            <div className="text-[11px] font-semibold tracking-[0.18em] text-emerald-700">
+              SEARCH CONSOLE 연결 완료
+            </div>
+            <p className="text-sm leading-6 text-slate-700">
+              첫 property 연결과 최근 7일 검증 수집이 끝났습니다.
+            </p>
+          </div>
+        </section>
+      ) : null}
+
+      {googleOAuthError ? (
+        <section className="rounded-2xl border border-rose-200 bg-rose-50/70 px-4 py-4">
+          <div className="space-y-1">
+            <div className="text-[11px] font-semibold tracking-[0.18em] text-rose-700">
+              GOOGLE 연결 오류
+            </div>
+            <p className="text-sm leading-6 text-slate-700">{googleOAuthError}</p>
+          </div>
+        </section>
+      ) : null}
+
       {blockedConnections.length > 0 ? (
         <section className="rounded-2xl border border-rose-200 bg-rose-50/70 px-4 py-4">
           <div className="space-y-1">
@@ -88,7 +125,7 @@ export default async function CustomerDetailPage({
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge value={detail.customer.statusTag} />
             <span className="text-sm text-slate-500">
-              {detail.customer.segment} · 담당 {detail.customer.primaryManager}
+              {detail.customer.segment} / 담당 {detail.customer.primaryManager}
             </span>
           </div>
 
@@ -123,7 +160,7 @@ export default async function CustomerDetailPage({
         <SectionCard
           eyebrow="채널 연결"
           title="채널 연결 상태"
-          description="외부 채널은 하나의 서비스처럼 보이되, 연결 상태와 오류는 채널별로 분리해 보여줍니다."
+          description="외부 채널은 하나의 서비스처럼 보이되, 연결 상태와 오류는 채널별로 분리해서 관리합니다."
           action={
             <>
               <CustomerConnectionEditor
@@ -131,6 +168,18 @@ export default async function CustomerDetailPage({
                 customerName={detail.customer.name}
                 connection={naverConnection}
               />
+              {googleOAuthConfigured ? (
+                <Link
+                  href={`/api/oauth/google/search-console/start?customerId=${detail.customer.id}`}
+                  className={compactSecondaryActionClass}
+                >
+                  {searchConsoleConnection ? "Search Console 재연결" : "Search Console 연결"}
+                </Link>
+              ) : (
+                <Link href="/" className={compactSecondaryActionClass}>
+                  Google OAuth 설정 보기
+                </Link>
+              )}
               <Link href="/" className={compactSecondaryActionClass}>
                 네이버 sync 보기
               </Link>
@@ -176,7 +225,7 @@ export default async function CustomerDetailPage({
               ))
             ) : (
               <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-600">
-                아직 연결된 채널이 없습니다. 우측 상단에서 네이버 연결을 먼저 등록해 주세요.
+                아직 연결된 채널이 없습니다. 오른쪽 상단에서 먼저 네이버 또는 Search Console을 연결해 주세요.
               </div>
             )}
           </div>
@@ -187,7 +236,10 @@ export default async function CustomerDetailPage({
         <SectionCard eyebrow="열린 이슈" title="이슈 목록">
           <div className="space-y-4">
             {detail.openIssues.map((issue) => (
-              <div key={issue.id} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+              <div
+                key={issue.id}
+                className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusBadge value={issue.severity} />
@@ -211,11 +263,14 @@ export default async function CustomerDetailPage({
         <SectionCard eyebrow="내부 메모" title="운영 메모">
           <div className="space-y-4">
             {detail.memos.map((memo) => (
-              <div key={memo.id} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+              <div
+                key={memo.id}
+                className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+              >
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge value="low" label={memo.memoType} />
                   <span className="text-xs leading-5 text-slate-500">
-                    {memo.createdBy} · {formatRelativeTime(memo.createdAt)}
+                    {memo.createdBy} / {formatRelativeTime(memo.createdAt)}
                   </span>
                 </div>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{memo.body}</p>
@@ -227,12 +282,15 @@ export default async function CustomerDetailPage({
 
       <SectionCard
         eyebrow="채널 신호"
-        title="채널별 신호"
-        description="최근 7일, 30일 기준 신호만 얕게 요약해 빠르게 판단할 수 있게 둡니다."
+        title="채널별 요약"
+        description="최근 7일, 30일 기준 신호만 짧게 보여줘서 고객을 빠르게 판단할 수 있게 합니다."
       >
         <div className="grid gap-4 xl:grid-cols-2">
           {detail.insights.map((insight) => (
-            <div key={insight.id} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
+            <div
+              key={insight.id}
+              className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="text-[11px] font-semibold tracking-[0.14em] text-slate-500">
@@ -248,7 +306,10 @@ export default async function CustomerDetailPage({
 
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {insight.metrics.map((metric) => (
-                  <div key={metric.label} className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+                  <div
+                    key={metric.label}
+                    className="rounded-lg border border-slate-200 bg-white px-4 py-3"
+                  >
                     <div className="text-[11px] font-semibold tracking-[0.14em] text-slate-500">
                       {metric.label}
                     </div>
@@ -256,7 +317,9 @@ export default async function CustomerDetailPage({
                       {metric.value}
                     </div>
                     {metric.delta ? (
-                      <div className="mt-1 text-xs leading-5 text-slate-500">{metric.delta}</div>
+                      <div className="mt-1 text-xs leading-5 text-slate-500">
+                        {metric.delta}
+                      </div>
                     ) : null}
                   </div>
                 ))}
@@ -269,7 +332,10 @@ export default async function CustomerDetailPage({
       <SectionCard eyebrow="최근 작업" title="작업 이력">
         <div className="space-y-4">
           {detail.logs.map((log) => (
-            <div key={log.id} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+            <div
+              key={log.id}
+              className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+            >
               <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -286,7 +352,7 @@ export default async function CustomerDetailPage({
                     <span className="font-medium text-slate-950">{log.summary}</span>
                   </div>
                   <p className="text-sm leading-6 text-slate-500">
-                    {log.actorName} · {log.actionType}
+                    {log.actorName} / {log.actionType}
                   </p>
                 </div>
                 <div className="text-sm text-slate-500">
