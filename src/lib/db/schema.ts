@@ -8,7 +8,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-export const customersTable = pgTable("customers", {
+export const customersTable = pgTable("yseo_customers", {
   id: varchar("id", { length: 64 }).primaryKey(),
   name: text("name").notNull(),
   segment: text("segment").notNull(),
@@ -23,7 +23,7 @@ export const customersTable = pgTable("customers", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const channelConnectionsTable = pgTable("channel_connections", {
+export const channelConnectionsTable = pgTable("yseo_channel_connections", {
   id: varchar("id", { length: 64 }).primaryKey(),
   customerId: varchar("customer_id", { length: 64 }).notNull(),
   channelType: varchar("channel_type", { length: 32 }).notNull(),
@@ -38,7 +38,7 @@ export const channelConnectionsTable = pgTable("channel_connections", {
   syncHeadline: text("sync_headline"),
 });
 
-export const performanceSnapshotsTable = pgTable("performance_snapshots", {
+export const performanceSnapshotsTable = pgTable("yseo_performance_snapshots", {
   id: varchar("id", { length: 64 }).primaryKey(),
   customerId: varchar("customer_id", { length: 64 }).notNull(),
   channelType: varchar("channel_type", { length: 32 }).notNull(),
@@ -50,7 +50,7 @@ export const performanceSnapshotsTable = pgTable("performance_snapshots", {
   capturedAt: timestamp("captured_at", { withTimezone: true }).notNull(),
 });
 
-export const issuesTable = pgTable("issues", {
+export const issuesTable = pgTable("yseo_issues", {
   id: varchar("id", { length: 64 }).primaryKey(),
   customerId: varchar("customer_id", { length: 64 }).notNull(),
   channelType: varchar("channel_type", { length: 32 }).notNull(),
@@ -65,7 +65,7 @@ export const issuesTable = pgTable("issues", {
   dedupeKey: text("dedupe_key").notNull(),
 });
 
-export const suggestionsTable = pgTable("suggestions", {
+export const suggestionsTable = pgTable("yseo_suggestions", {
   id: varchar("id", { length: 64 }).primaryKey(),
   issueId: varchar("issue_id", { length: 64 }).notNull(),
   customerId: varchar("customer_id", { length: 64 }).notNull(),
@@ -81,7 +81,7 @@ export const suggestionsTable = pgTable("suggestions", {
   executedAt: timestamp("executed_at", { withTimezone: true }),
 });
 
-export const reportDraftsTable = pgTable("report_drafts", {
+export const reportDraftsTable = pgTable("yseo_report_drafts", {
   id: varchar("id", { length: 64 }).primaryKey(),
   customerId: varchar("customer_id", { length: 64 }).notNull(),
   title: text("title").notNull(),
@@ -95,7 +95,7 @@ export const reportDraftsTable = pgTable("report_drafts", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
 });
 
-export const internalMemosTable = pgTable("internal_memos", {
+export const internalMemosTable = pgTable("yseo_internal_memos", {
   id: varchar("id", { length: 64 }).primaryKey(),
   customerId: varchar("customer_id", { length: 64 }).notNull(),
   body: text("body").notNull(),
@@ -104,7 +104,7 @@ export const internalMemosTable = pgTable("internal_memos", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
 });
 
-export const syncRunsTable = pgTable("sync_runs", {
+export const syncRunsTable = pgTable("yseo_sync_runs", {
   id: varchar("id", { length: 64 }).primaryKey(),
   channelConnectionId: varchar("channel_connection_id", { length: 64 }).notNull(),
   syncType: varchar("sync_type", { length: 32 }).notNull(),

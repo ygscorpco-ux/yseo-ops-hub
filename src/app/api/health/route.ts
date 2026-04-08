@@ -1,7 +1,9 @@
+import { getDatabaseHealth } from "@/lib/db/client";
 import { getDashboardView } from "@/lib/yseo/selectors";
 
 export async function GET() {
   const dashboard = getDashboardView();
+  const database = await getDatabaseHealth();
 
   return Response.json({
     status: "ok",
@@ -12,5 +14,6 @@ export async function GET() {
     blockedConnections: dashboard.connectionWatchlist.filter(
       (connection) => connection.connectionStatus === "blocked",
     ).length,
+    database,
   });
 }
