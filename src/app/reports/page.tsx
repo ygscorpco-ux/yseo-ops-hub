@@ -8,7 +8,7 @@ export default async function ReportsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="REPORT DRAFTS"
+        eyebrow="초안 검토"
         title="리포트"
         description="자동 요약과 초안 생성까지만 처리하고, 최종 문장과 발송 여부는 운영자가 확인한 뒤 진행합니다."
       />
@@ -16,7 +16,7 @@ export default async function ReportsPage() {
       <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
         <div className="flex flex-col gap-2">
           <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-500">
-            DRAFT POLICY
+            초안 정책
           </div>
           <h2 className="text-base font-semibold tracking-tight text-slate-950">
             초안은 자동, 최종 발송은 수동

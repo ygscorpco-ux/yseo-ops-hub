@@ -20,7 +20,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="OPERATIONS FIRST"
+        eyebrow="운영 허브"
         title="오늘 바로 처리할 고객과 작업만 보여줍니다"
         description="YSEO는 정상 고객을 길게 펼쳐 보여주는 분석 도구가 아닙니다. 예외 고객, 연결 이상, 승인 대기 작업을 먼저 모아 운영 속도를 높이는 액션 허브입니다."
         actions={
@@ -39,7 +39,7 @@ export default async function HomePage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
             <div className="text-[11px] font-semibold tracking-[0.18em] text-amber-700">
-              TODAY FOCUS
+              오늘 우선순위
             </div>
             <h2 className="text-base font-semibold tracking-tight text-slate-950">
               처리 필요 고객 {dashboard.metrics[0]?.value}곳, 긴급 이슈 {dashboard.metrics[1]?.value}
@@ -81,7 +81,7 @@ export default async function HomePage() {
 
       <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <SectionCard
-          eyebrow="FOCUS CUSTOMERS"
+          eyebrow="우선 고객"
           title="먼저 볼 고객"
           description="상태 태그, 최근 이슈, 마지막 동기화 시각을 기준으로 오늘 손댈 고객만 앞으로 끌어냅니다."
         >
@@ -132,7 +132,7 @@ export default async function HomePage() {
 
         <div className="space-y-4">
           <SectionCard
-            eyebrow="CONNECTION WATCH"
+            eyebrow="연결 점검"
             title="연결 상태 확인"
             description="권한 문제, 토큰 만료, 동기화 실패 고객을 먼저 모아 확인합니다."
           >
@@ -163,7 +163,7 @@ export default async function HomePage() {
           </SectionCard>
 
           <SectionCard
-            eyebrow="PENDING SUGGESTIONS"
+            eyebrow="승인 대기"
             title="승인 대기 제안"
             description="바로 실행하지 않고 운영자 검토가 필요한 제안만 따로 모아 둡니다."
           >
@@ -189,7 +189,7 @@ export default async function HomePage() {
 
       <section className="grid gap-4 xl:grid-cols-2">
         <SectionCard
-          eyebrow="ISSUE QUEUE"
+          eyebrow="상단 이슈"
           title="상단 이슈"
           action={
             <div className="flex items-center gap-2 text-xs leading-5 text-slate-500">
@@ -221,7 +221,7 @@ export default async function HomePage() {
         </SectionCard>
 
         <SectionCard
-          eyebrow="REPORT DRAFTS"
+          eyebrow="최근 초안"
           title="최근 리포트 초안"
           action={
             <div className="flex items-center gap-2 text-xs leading-5 text-slate-500">

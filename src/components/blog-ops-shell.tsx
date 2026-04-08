@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -17,15 +16,18 @@ export function BlogOpsShell({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen">
         <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-slate-950 text-slate-100 lg:flex lg:flex-col">
           <div className="border-b border-white/10 px-6 py-6">
-            <Link href="/" className="flex min-h-[120px] items-center justify-center rounded-xl">
-              <Image
-                src="/branding/yeomgwangsa-logo.png"
-                alt="YSEO"
-                width={150}
-                height={40}
-                className="w-[150px] h-auto"
-                priority
-              />
+            <Link href="/" className="block rounded-xl">
+              <div className="flex min-h-[120px] flex-col items-start justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-5">
+                <div className="inline-flex size-9 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-sm font-semibold tracking-[0.08em] text-white">
+                  Y
+                </div>
+                <div>
+                  <div className="text-lg font-semibold tracking-tight text-white">YSEO</div>
+                  <div className="mt-1 text-xs leading-5 text-slate-400">
+                    검색 운영 액션 허브
+                  </div>
+                </div>
+              </div>
             </Link>
           </div>
 
@@ -34,6 +36,17 @@ export function BlogOpsShell({ children }: { children: ReactNode }) {
               <AppNavLink key={item.href} href={item.href} label={item.label} />
             ))}
           </nav>
+
+          <div className="px-4 pb-5">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+              <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-400">
+                OPS NOTE
+              </div>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                정상 고객보다 지금 손대야 할 고객과 작업이 먼저 보이도록 유지합니다.
+              </p>
+            </div>
+          </div>
         </aside>
 
         <div className="min-w-0 flex-1">

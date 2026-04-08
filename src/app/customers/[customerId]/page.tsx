@@ -37,7 +37,7 @@ export default async function CustomerDetailPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="CUSTOMER DETAIL"
+        eyebrow="고객 상세"
         title={detail.customer.name}
         description={detail.customer.focus}
         actions={
@@ -66,7 +66,7 @@ export default async function CustomerDetailPage({
         <section className="rounded-2xl border border-rose-200 bg-rose-50/70 px-4 py-4">
           <div className="space-y-1">
             <div className="text-[11px] font-semibold tracking-[0.18em] text-rose-700">
-              CONNECTION ALERT
+              연결 경고
             </div>
             <h2 className="text-base font-semibold tracking-tight text-slate-950">
               연결 상태 확인이 필요합니다
@@ -79,7 +79,7 @@ export default async function CustomerDetailPage({
       ) : null}
 
       <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <SectionCard eyebrow="OVERVIEW" title="고객 상태">
+        <SectionCard eyebrow="개요" title="고객 상태">
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge value={detail.customer.statusTag} />
             <span className="text-sm text-slate-500">
@@ -116,7 +116,7 @@ export default async function CustomerDetailPage({
         </SectionCard>
 
         <SectionCard
-          eyebrow="CONNECTIONS"
+          eyebrow="채널 연결"
           title="채널 연결 상태"
           description="외부 채널은 하나의 서비스처럼 보이되, 연결 상태와 오류는 채널별로 분리해 보여줍니다."
         >
@@ -147,7 +147,7 @@ export default async function CustomerDetailPage({
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <SectionCard eyebrow="ISSUES" title="열린 이슈">
+        <SectionCard eyebrow="열린 이슈" title="이슈 목록">
           <div className="space-y-4">
             {detail.openIssues.map((issue) => (
               <div key={issue.id} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
@@ -165,7 +165,7 @@ export default async function CustomerDetailPage({
           </div>
         </SectionCard>
 
-        <SectionCard eyebrow="MEMOS" title="내부 메모">
+        <SectionCard eyebrow="내부 메모" title="운영 메모">
           <div className="space-y-4">
             {detail.memos.map((memo) => (
               <div key={memo.id} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
@@ -183,7 +183,7 @@ export default async function CustomerDetailPage({
       </section>
 
       <SectionCard
-        eyebrow="CHANNEL SIGNALS"
+        eyebrow="채널 신호"
         title="채널별 신호"
         description="최근 7일, 30일 기준 신호만 얕게 요약해 빠르게 판단할 수 있게 둡니다."
       >
@@ -223,7 +223,7 @@ export default async function CustomerDetailPage({
         </div>
       </SectionCard>
 
-      <SectionCard eyebrow="ACTIVITY" title="최근 작업 이력">
+      <SectionCard eyebrow="최근 작업" title="작업 이력">
         <div className="space-y-4">
           {detail.logs.map((log) => (
             <div key={log.id} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">

@@ -47,7 +47,7 @@ export function ReportPreviewDialog({
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-500">
-            REPORT DRAFT
+            리포트 초안
           </div>
           <DialogTitle>{customerName} 리포트 초안</DialogTitle>
           <DialogDescription>
@@ -58,7 +58,7 @@ export function ReportPreviewDialog({
         <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
             <div className="text-[11px] font-semibold tracking-[0.14em] text-slate-500">
-              SUMMARY
+              요약
             </div>
             <h3 className="mt-1 text-base font-semibold tracking-tight text-slate-950">
               {report.title}
@@ -97,7 +97,7 @@ export function ReportPreviewDialog({
 
           <div className="rounded-xl border border-slate-200 bg-white px-4 py-4">
             <div className="text-[11px] font-semibold tracking-[0.14em] text-slate-500">
-              OPERATOR NOTE
+              운영 메모
             </div>
             <textarea
               value={operatorNote}

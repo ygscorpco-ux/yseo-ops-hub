@@ -34,7 +34,7 @@ export function IssueQueueView({ entries }: { entries: IssueQueueEntry[] }) {
 
   return (
     <SectionCard
-      eyebrow="ACTION QUEUE"
+      eyebrow="작업 큐"
       title="이슈와 승인 대기 작업"
       description="치명도와 감지 시각 기준으로 정렬해 먼저 확인할 작업부터 바로 처리할 수 있게 묶었습니다."
     >

@@ -8,7 +8,7 @@ export default async function IssuesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="ACTION QUEUE"
+        eyebrow="작업 기준"
         title="작업 큐"
         description="고객 기준이 아니라 작업 기준으로 정렬합니다. 자동 실행보다 승인 대기와 수동 검토가 필요한 항목을 먼저 보여줍니다."
       />
@@ -16,7 +16,7 @@ export default async function IssuesPage() {
       <section className="rounded-2xl border border-rose-200 bg-rose-50/70 px-4 py-4">
         <div className="flex flex-col gap-2">
           <div className="text-[11px] font-semibold tracking-[0.18em] text-rose-700">
-            MANUAL REVIEW
+            수동 검토
           </div>
           <h2 className="text-base font-semibold tracking-tight text-slate-950">
             예산 변경, 리뷰 답글, 계정 권한 변경은 자동 실행하지 않습니다

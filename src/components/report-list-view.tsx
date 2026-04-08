@@ -27,7 +27,7 @@ export function ReportListView({ entries }: { entries: ReportListEntry[] }) {
 
   return (
     <SectionCard
-      eyebrow="DRAFT REVIEW"
+      eyebrow="초안 목록"
       title="리포트 초안 목록"
       description="고객명이나 초안 제목으로 바로 찾고, 필요한 경우에만 상세 미리보기로 내려가 검수합니다."
     >

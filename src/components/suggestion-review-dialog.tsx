@@ -57,7 +57,7 @@ export function SuggestionReviewDialog({
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-500">
-            SUGGESTION REVIEW
+            제안 검토
           </div>
           <DialogTitle>{customerName} 제안 검토</DialogTitle>
           <DialogDescription>

@@ -42,7 +42,7 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
 
   return (
     <SectionCard
-      eyebrow="CUSTOMER SCAN"
+      eyebrow="고객 스캔"
       title="우선순위 고객 스캔"
       description="검색, 상태 태그, 채널 기준으로 고객을 빠르게 걸러 보고 바로 상세나 제안 검토로 이동할 수 있습니다."
     >
