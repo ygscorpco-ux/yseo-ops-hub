@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ChannelBadge } from "@/components/channel-badge";
+import { CustomerConnectionEditor } from "@/components/customer-connection-editor";
 import { PageHeader } from "@/components/page-header";
 import { ReportPreviewDialog } from "@/components/report-preview-dialog";
 import { SectionCard } from "@/components/section-card";
@@ -32,6 +33,9 @@ export default async function CustomerDetailPage({
   const latestReport = detail.reportDrafts[0];
   const pendingSuggestions = detail.suggestionSet.filter(
     (suggestion) => suggestion.approvalStatus === "pending",
+  );
+  const naverConnection = detail.connections.find(
+    (connection) => connection.channelType === "naver-searchad",
   );
 
   return (
@@ -120,47 +124,60 @@ export default async function CustomerDetailPage({
           title="채널 연결 상태"
           description="외부 채널은 하나의 서비스처럼 보이되, 연결 상태와 오류는 채널별로 분리해 보여줍니다."
           action={
-            <Link href="/" className={compactSecondaryActionClass}>
-              네이버 sync 보기
-            </Link>
+            <>
+              <CustomerConnectionEditor
+                customerId={detail.customer.id}
+                customerName={detail.customer.name}
+                connection={naverConnection}
+              />
+              <Link href="/" className={compactSecondaryActionClass}>
+                네이버 sync 보기
+              </Link>
+            </>
           }
         >
           <div className="space-y-3">
-            {detail.connections.map((connection) => (
-              <div
-                key={connection.id}
-                className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <ChannelBadge channel={connection.channelType} />
-                      <span className="text-xs leading-5 text-slate-500">
-                        {connection.externalPropertyRef ?? connection.externalAccountRef}
-                      </span>
-                    </div>
-                    <p className="text-sm leading-6 text-slate-600">
-                      {connection.syncHeadline}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <StatusBadge value={connection.syncStatus} />
-                      <span className="text-xs leading-5 text-slate-500">
-                        마지막 동기화 {formatRelativeTime(connection.lastSyncAt)}
-                      </span>
-                      <span className="text-xs leading-5 text-slate-500">
-                        인증 {connection.authMethod === "api-key" ? "API key" : "OAuth"}
-                      </span>
-                      {connection.lastErrorCode ? (
-                        <span className="text-xs leading-5 text-rose-600">
-                          오류 {connection.lastErrorCode}
+            {detail.connections.length > 0 ? (
+              detail.connections.map((connection) => (
+                <div
+                  key={connection.id}
+                  className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <ChannelBadge channel={connection.channelType} />
+                        <span className="text-xs leading-5 text-slate-500">
+                          {connection.externalPropertyRef ?? connection.externalAccountRef}
                         </span>
-                      ) : null}
+                      </div>
+                      <p className="text-sm leading-6 text-slate-600">
+                        {connection.syncHeadline}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <StatusBadge value={connection.syncStatus} />
+                        <span className="text-xs leading-5 text-slate-500">
+                          마지막 동기화 {formatRelativeTime(connection.lastSyncAt)}
+                        </span>
+                        <span className="text-xs leading-5 text-slate-500">
+                          인증 {connection.authMethod === "api-key" ? "API key" : "OAuth"}
+                        </span>
+                        {connection.lastErrorCode ? (
+                          <span className="text-xs leading-5 text-rose-600">
+                            오류 {connection.lastErrorCode}
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
+                    <StatusBadge value={connection.connectionStatus} />
                   </div>
-                  <StatusBadge value={connection.connectionStatus} />
                 </div>
+              ))
+            ) : (
+              <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-600">
+                아직 연결된 채널이 없습니다. 우측 상단에서 네이버 연결을 먼저 등록해 주세요.
               </div>
-            ))}
+            )}
           </div>
         </SectionCard>
       </section>

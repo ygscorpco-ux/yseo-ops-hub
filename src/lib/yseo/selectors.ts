@@ -31,6 +31,21 @@ export interface IssueQueueEntry {
   suggestionSet: Suggestion[];
 }
 
+function getIssuePriorityBoost(issueType: string) {
+  switch (issueType) {
+    case "sync-blocked":
+      return 0;
+    case "conversion-drop":
+      return 1;
+    case "click-drop":
+      return 2;
+    case "no-conversion":
+      return 3;
+    default:
+      return 9;
+  }
+}
+
 export interface ReportListEntry {
   report: ReportDraft;
   customer: Customer;
@@ -158,6 +173,14 @@ export async function listIssueQueueEntries(): Promise<IssueQueueEntry[]> {
 
       if (severityGap !== 0) {
         return severityGap;
+      }
+
+      const issueTypeGap =
+        getIssuePriorityBoost(left.issue.issueType) -
+        getIssuePriorityBoost(right.issue.issueType);
+
+      if (issueTypeGap !== 0) {
+        return issueTypeGap;
       }
 
       return (
