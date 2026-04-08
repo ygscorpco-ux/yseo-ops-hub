@@ -8,6 +8,7 @@ import { ChannelBadge } from "@/components/channel-badge";
 import { EmptyState } from "@/components/empty-state";
 import { ReportPreviewDialog } from "@/components/report-preview-dialog";
 import { SectionCard } from "@/components/section-card";
+import { StateChip } from "@/components/state-chip";
 import { StatusBadge } from "@/components/status-badge";
 import { SuggestionReviewDialog } from "@/components/suggestion-review-dialog";
 import type { CustomerListEntry } from "@/lib/yseo/selectors";
@@ -40,13 +41,26 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
     });
   }, [channelFilter, deferredSearch, entries, statusFilter]);
 
+  const setupCustomers = entries.filter(
+    (entry) => entry.customer.onboardingStatus !== "active",
+  ).length;
+  const naverLinkedCustomers = entries.filter((entry) =>
+    entry.connections.some((connection) => connection.channelType === "naver-searchad"),
+  ).length;
+
   return (
     <SectionCard
-      eyebrow="고객 스캔"
-      title="우선순위 고객 스캔"
-      description="검색, 상태 태그, 채널 기준으로 고객을 빠르게 걸러 보고 바로 상세나 제안 검토로 이동할 수 있습니다."
+      eyebrow="고객 리스트"
+      title="우선순위 고객 목록"
+      description="검색, 상태 태그, 채널 기준으로 고객을 빠르게 걸러 보고 바로 상세와 제안 검토로 이동할 수 있습니다."
     >
       <div className="space-y-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <StateChip label={`전체 ${entries.length}`} tone="slate" />
+          <StateChip label={`온보딩 ${setupCustomers}`} tone="sky" />
+          <StateChip label={`네이버 연결 ${naverLinkedCustomers}`} tone="amber" />
+        </div>
+
         <form
           className="grid gap-3 md:grid-cols-[1.4fr_0.8fr_0.8fr_auto]"
           onSubmit={(event) => event.preventDefault()}
@@ -92,7 +106,7 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
         {filteredEntries.length === 0 ? (
           <EmptyState
             title="조건에 맞는 고객이 없습니다"
-            description="검색어나 필터를 바꾸면 다시 바로 볼 수 있습니다."
+            description="검색어나 필터를 바꾸면 다시 바로 확인할 수 있습니다."
           />
         ) : (
           <div className="overflow-x-auto">
@@ -128,13 +142,22 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
                       </div>
                     </td>
                     <td className="border-b border-slate-100 px-3 py-4 align-top">
-                      <StatusBadge value={entry.customer.statusTag} />
+                      <div className="flex flex-wrap gap-2">
+                        <StatusBadge value={entry.customer.statusTag} />
+                        {entry.customer.onboardingStatus !== "active" ? (
+                          <StateChip label="온보딩" tone="sky" />
+                        ) : null}
+                      </div>
                     </td>
                     <td className="border-b border-slate-100 px-3 py-4 align-top">
                       <div className="flex flex-wrap gap-2">
-                        {entry.connections.map((connection) => (
-                          <ChannelBadge key={connection.id} channel={connection.channelType} />
-                        ))}
+                        {entry.connections.length > 0 ? (
+                          entry.connections.map((connection) => (
+                            <ChannelBadge key={connection.id} channel={connection.channelType} />
+                          ))
+                        ) : (
+                          <StateChip label="미연결" tone="slate" />
+                        )}
                       </div>
                     </td>
                     <td className="border-b border-slate-100 px-3 py-4 align-top text-slate-600">
