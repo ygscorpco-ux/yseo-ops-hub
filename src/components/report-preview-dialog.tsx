@@ -1,20 +1,15 @@
 "use client";
 
 import { startTransition, useState } from "react";
-import { DownloadIcon, FileTextIcon, RefreshCcwIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { ReportDraft } from "@/lib/yseo/types";
+import {
+  compactSecondaryActionClass,
+  primaryActionClass,
+  secondaryActionClass,
+  textareaClass,
+} from "@/lib/yseo/ui";
 
 interface ReportPreviewDialogProps {
   customerName: string;
@@ -27,29 +22,33 @@ export function ReportPreviewDialog({
 }: ReportPreviewDialogProps) {
   const [operatorNote, setOperatorNote] = useState("");
   const [statusText, setStatusText] = useState(
-    "자동 초안을 검토한 뒤 전달용 문장을 정리하세요.",
+    "자동 초안은 참고용입니다. 최종 문장과 전달 방식은 운영자가 확인한 뒤 확정합니다.",
   );
 
   function regenerateDraft() {
     startTransition(() => {
-      setStatusText("초안을 다시 생성했습니다. 운영자 메모는 유지됩니다.");
+      setStatusText("초안을 다시 정리했습니다. 운영 메모는 유지한 상태입니다.");
     });
   }
 
   function exportDraft() {
     startTransition(() => {
-      setStatusText("내보내기 준비 상태로 표시했습니다. 실제 발송은 아직 수동 단계입니다.");
+      setStatusText("내보내기 준비 상태로 변경했습니다. 실제 발송은 아직 수동 단계입니다.");
     });
   }
 
   return (
     <Dialog>
-      <DialogTrigger render={<Button variant="outline" size="sm" />}>
-        <FileTextIcon data-icon="inline-start" />
+      <DialogTrigger
+        render={<button type="button" className={`${compactSecondaryActionClass} rounded-md px-2.5 py-1.5 text-xs`} />}
+      >
         초안 보기
       </DialogTrigger>
-      <DialogContent className="max-w-3xl rounded-2xl border-slate-200 bg-white shadow-2xl">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
+          <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-500">
+            REPORT DRAFT
+          </div>
           <DialogTitle>{customerName} 리포트 초안</DialogTitle>
           <DialogDescription>
             자동 생성은 초안까지만 담당합니다. 최종 문장과 발송 여부는 운영자가 결정합니다.
@@ -57,19 +56,21 @@ export function ReportPreviewDialog({
         </DialogHeader>
 
         <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-            <div className="flex flex-col gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Summary
-              </span>
-              <h3 className="text-lg font-semibold text-slate-950">{report.title}</h3>
-              <p className="text-sm leading-7 text-slate-600">{report.summary}</p>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
+            <div className="text-[11px] font-semibold tracking-[0.14em] text-slate-500">
+              SUMMARY
             </div>
+            <h3 className="mt-1 text-base font-semibold tracking-tight text-slate-950">
+              {report.title}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{report.summary}</p>
 
-            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div>
-                <h4 className="text-sm font-semibold text-slate-950">주요 변화</h4>
-                <ul className="mt-3 flex flex-col gap-2 text-sm text-slate-600">
+                <div className="text-[11px] font-semibold tracking-[0.14em] text-slate-500">
+                  주요 변화
+                </div>
+                <ul className="mt-2 space-y-2 text-sm leading-6 text-slate-700">
                   {report.highlights.map((item) => (
                     <li key={item} className="flex gap-2">
                       <span className="mt-2 size-1.5 rounded-full bg-slate-400" />
@@ -79,8 +80,10 @@ export function ReportPreviewDialog({
                 </ul>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-slate-950">다음 액션</h4>
-                <ul className="mt-3 flex flex-col gap-2 text-sm text-slate-600">
+                <div className="text-[11px] font-semibold tracking-[0.14em] text-slate-500">
+                  다음 액션
+                </div>
+                <ul className="mt-2 space-y-2 text-sm leading-6 text-slate-700">
                   {report.nextActions.map((item) => (
                     <li key={item} className="flex gap-2">
                       <span className="mt-2 size-1.5 rounded-full bg-slate-400" />
@@ -92,32 +95,30 @@ export function ReportPreviewDialog({
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
-            <div className="flex flex-col gap-3">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Operator note
-              </span>
-              <Textarea
-                value={operatorNote}
-                onChange={(event) => setOperatorNote(event.target.value)}
-                placeholder="고객사 전달 전에 붙일 운영 메모를 적어두세요."
-                rows={10}
-                className="border-slate-300 bg-white"
-              />
-              <p className="text-sm leading-6 text-slate-600">{statusText}</p>
+          <div className="rounded-xl border border-slate-200 bg-white px-4 py-4">
+            <div className="text-[11px] font-semibold tracking-[0.14em] text-slate-500">
+              OPERATOR NOTE
+            </div>
+            <textarea
+              value={operatorNote}
+              onChange={(event) => setOperatorNote(event.target.value)}
+              placeholder="고객 전달 전에 붙일 운영 메모를 적어주세요."
+              rows={10}
+              className={`${textareaClass} mt-3 min-h-[240px] w-full px-3 py-3`}
+            />
+            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              {statusText}
             </div>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={regenerateDraft}>
-            <RefreshCcwIcon data-icon="inline-start" />
+          <button type="button" className={secondaryActionClass} onClick={regenerateDraft}>
             초안 재생성
-          </Button>
-          <Button onClick={exportDraft}>
-            <DownloadIcon data-icon="inline-start" />
+          </button>
+          <button type="button" className={primaryActionClass} onClick={exportDraft}>
             내보내기 준비
-          </Button>
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

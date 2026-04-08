@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import { AppShell } from "@/components/app-shell";
+import { BlogOpsShell } from "@/components/blog-ops-shell";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="ko" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
       <body className="min-h-full">
-        <AppShell>{children}</AppShell>
+        <BlogOpsShell>{children}</BlogOpsShell>
       </body>
     </html>
   );

@@ -1,10 +1,13 @@
-import { Badge } from "@/components/ui/badge";
+import { StateChip } from "@/components/state-chip";
 import { channelLabels, type ChannelType } from "@/lib/yseo/types";
 
 export function ChannelBadge({ channel }: { channel: ChannelType }) {
-  return (
-    <Badge className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 shadow-none">
-      {channelLabels[channel]}
-    </Badge>
-  );
+  const tone =
+    channel === "naver-searchad"
+      ? "amber"
+      : channel === "search-console"
+        ? "sky"
+        : "violet";
+
+  return <StateChip label={channelLabels[channel]} tone={tone} />;
 }

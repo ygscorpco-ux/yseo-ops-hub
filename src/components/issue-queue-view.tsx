@@ -9,25 +9,8 @@ import { EmptyState } from "@/components/empty-state";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
 import { SuggestionReviewDialog } from "@/components/suggestion-review-dialog";
-import { buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import type { IssueQueueEntry } from "@/lib/yseo/selectors";
+import { compactSecondaryActionClass, fieldClass } from "@/lib/yseo/ui";
 import { formatRelativeTime } from "@/lib/utils";
 
 export function IssueQueueView({ entries }: { entries: IssueQueueEntry[] }) {
@@ -51,120 +34,116 @@ export function IssueQueueView({ entries }: { entries: IssueQueueEntry[] }) {
 
   return (
     <SectionCard
-      eyebrow="Action queue"
+      eyebrow="ACTION QUEUE"
       title="이슈와 승인 대기 작업"
-      description="고객이 아니라 작업 기준으로 정렬합니다. 치명도와 감지 시각 기준으로 처리 순서를 빠르게 잡을 수 있습니다."
+      description="치명도와 감지 시각 기준으로 정렬해 먼저 확인할 작업부터 바로 처리할 수 있게 묶었습니다."
     >
-      <div className="flex flex-col gap-5">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-1 flex-col gap-3 sm:flex-row">
-            <div className="relative flex-1">
-              <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="이슈 제목, 고객명, 요약으로 찾기"
-                className="border-slate-300 bg-white pl-9"
-              />
-            </div>
+      <div className="space-y-5">
+        <form className="grid gap-3 md:grid-cols-[1.4fr_0.8fr_auto]" onSubmit={(event) => event.preventDefault()}>
+          <label className="relative block">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="이슈 제목, 고객명, 요약으로 찾기"
+              className={`${fieldClass} w-full pl-9`}
+            />
+          </label>
 
-            <Select
-              value={severityFilter}
-              onValueChange={(value) => setSeverityFilter(value ?? "all")}
-            >
-              <SelectTrigger className="w-full border-slate-300 bg-white sm:w-40">
-                <SelectValue placeholder="치명도" />
-              </SelectTrigger>
-              <SelectContent className="border border-slate-200 bg-white">
-                <SelectGroup>
-                  <SelectItem value="all">전체 치명도</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+          <select
+            value={severityFilter}
+            onChange={(event) => setSeverityFilter(event.target.value)}
+            className={fieldClass}
+          >
+            <option value="all">전체 심각도</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
 
-          <div className="text-sm text-slate-500">
-            현재 {filteredEntries.length}건이 작업 큐에 남아 있습니다.
+          <div className="flex items-center justify-end text-sm text-slate-500">
+            {filteredEntries.length}개 작업
           </div>
-        </div>
+        </form>
 
         {filteredEntries.length === 0 ? (
           <EmptyState
-            title="조건에 맞는 이슈가 없습니다."
-            description="검색어나 치명도 필터를 바꾸면 바로 다시 볼 수 있습니다."
+            title="조건에 맞는 작업이 없습니다"
+            description="검색어나 심각도 필터를 바꾸면 다시 바로 확인할 수 있습니다."
           />
         ) : (
-          <Table className="rounded-xl border border-slate-200 bg-white">
-            <TableHeader className="bg-slate-50">
-              <TableRow className="hover:bg-slate-50">
-                <TableHead className="px-4 text-slate-500">치명도</TableHead>
-                <TableHead className="text-slate-500">고객</TableHead>
-                <TableHead className="text-slate-500">채널</TableHead>
-                <TableHead className="text-slate-500">이슈</TableHead>
-                <TableHead className="text-slate-500">권장 액션</TableHead>
-                <TableHead className="text-slate-500">감지 시각</TableHead>
-                <TableHead className="px-4 text-right text-slate-500">처리</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEntries.map((entry) => (
-                <TableRow key={entry.issue.id} className="hover:bg-slate-50">
-                  <TableCell className="px-4">
-                    <StatusBadge value={entry.issue.severity} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <Link
-                        href={`/customers/${entry.customer.id}`}
-                        className="font-medium text-slate-950 hover:text-slate-700"
-                      >
-                        {entry.customer.name}
-                      </Link>
-                      <span className="text-xs text-slate-500">
-                        {entry.customer.statusTag}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <ChannelBadge channel={entry.issue.channelType} />
-                  </TableCell>
-                  <TableCell className="max-w-sm whitespace-normal">
-                    <div className="space-y-1">
-                      <div className="font-medium text-slate-950">{entry.issue.title}</div>
-                      <p className="text-sm text-slate-600">{entry.issue.summary}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-sm whitespace-normal text-sm text-slate-600">
-                    {entry.issue.recommendedAction}
-                  </TableCell>
-                  <TableCell className="text-sm text-slate-500">
-                    {formatRelativeTime(entry.issue.detectedAt)}
-                  </TableCell>
-                  <TableCell className="px-4">
-                    <div className="flex justify-end gap-2">
-                      <Link
-                        href={`/customers/${entry.customer.id}`}
-                        className={buttonVariants({ variant: "outline", size: "sm" })}
-                      >
-                        상세
-                        <ArrowUpRightIcon data-icon="inline-end" />
-                      </Link>
-                      {entry.suggestionSet.length > 0 ? (
-                        <SuggestionReviewDialog
-                          customerName={entry.customer.name}
-                          suggestions={entry.suggestionSet}
-                        />
-                      ) : null}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-separate border-spacing-0 text-sm">
+              <thead>
+                <tr className="text-left text-[12px] font-semibold text-slate-500">
+                  <th className="border-b border-slate-200 px-3 py-2.5">심각도</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">고객</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">채널</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">이슈</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">권장 액션</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">감지 시각</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5 text-right">처리</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredEntries.map((entry) => (
+                  <tr key={entry.issue.id} className="hover:bg-slate-50">
+                    <td className="border-b border-slate-100 px-3 py-4 align-top">
+                      <StatusBadge value={entry.issue.severity} />
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top">
+                      <div className="space-y-1">
+                        <Link
+                          href={`/customers/${entry.customer.id}`}
+                          className="font-medium text-slate-950 hover:text-slate-700"
+                        >
+                          {entry.customer.name}
+                        </Link>
+                        <div className="text-xs leading-5 text-slate-500">
+                          {entry.customer.statusTag}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top">
+                      <ChannelBadge channel={entry.issue.channelType} />
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top">
+                      <div className="max-w-sm space-y-1 whitespace-normal">
+                        <div className="font-medium text-slate-950">{entry.issue.title}</div>
+                        <p className="text-slate-600">{entry.issue.summary}</p>
+                      </div>
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top text-slate-600">
+                      <div className="max-w-sm whitespace-normal">
+                        {entry.issue.recommendedAction}
+                      </div>
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top text-slate-500">
+                      {formatRelativeTime(entry.issue.detectedAt)}
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top">
+                      <div className="flex justify-end gap-2">
+                        <Link
+                          href={`/customers/${entry.customer.id}`}
+                          className={`${compactSecondaryActionClass} rounded-md px-2.5 py-1.5 text-xs`}
+                        >
+                          상세
+                          <ArrowUpRightIcon className="ml-1 inline size-3.5" />
+                        </Link>
+                        {entry.suggestionSet.length > 0 ? (
+                          <SuggestionReviewDialog
+                            customerName={entry.customer.name}
+                            suggestions={entry.suggestionSet}
+                          />
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </SectionCard>

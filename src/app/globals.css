@@ -55,8 +55,8 @@
   --color-info-foreground: var(--info-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
-  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
   --radius-lg: var(--radius);
   --radius-md: var(--radius-md);
 }
@@ -72,10 +72,10 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
+  font-family: var(--font-geist-sans), sans-serif;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--accent) 70%, white);
+  background: rgba(14, 165, 233, 0.18);
   color: var(--foreground);
 }

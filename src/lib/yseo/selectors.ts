@@ -184,8 +184,15 @@ export async function listReportEntries(): Promise<ReportListEntry[]> {
 }
 
 export async function getDashboardView(): Promise<DashboardView> {
-  const [{ channelConnections, issues, reportDrafts, suggestions, customers }, entries, queueEntries] =
-    await Promise.all([loadYseoData(), listCustomerEntries(), listIssueQueueEntries()]);
+  const [
+    { channelConnections, issues, reportDrafts, suggestions, customers },
+    entries,
+    queueEntries,
+  ] = await Promise.all([
+    loadYseoData(),
+    listCustomerEntries(),
+    listIssueQueueEntries(),
+  ]);
 
   const customerMap = getCustomerMap(customers);
 
@@ -223,9 +230,7 @@ export async function getDashboardView(): Promise<DashboardView> {
     metrics: [
       {
         label: "처리 필요 고객",
-        value: String(
-          entries.filter((entry) => entry.customer.statusTag !== "정상").length,
-        ),
+        value: String(entries.filter((entry) => entry.customer.statusTag !== "정상").length),
         helper: "정상 고객보다 예외 고객이 먼저 보이도록 정렬합니다.",
         tone: "critical",
       },
@@ -234,25 +239,25 @@ export async function getDashboardView(): Promise<DashboardView> {
         value: String(
           queueEntries.filter((entry) => entry.issue.severity === "critical").length,
         ),
-        helper: "오늘 바로 확인할 치명 이슈 기준입니다.",
+        helper: "오늘 바로 확인해야 할 치명 이슈 수입니다.",
         tone: "warning",
       },
       {
         label: "연결 이상",
         value: String(connectionWatchlist.length),
-        helper: "토큰 만료, 권한 문제, 실패 sync를 모아 봅니다.",
+        helper: "토큰 만료, 권한 문제, 실패한 동기화를 함께 봅니다.",
         tone: "info",
       },
       {
         label: "승인 대기 제안",
         value: String(pendingSuggestionList.length),
-        helper: "자동 실행 없이 승인 대기 상태만 앞으로 올립니다.",
+        helper: "자동 실행 없이 운영자 확인 대기 상태만 올립니다.",
         tone: "warning",
       },
       {
         label: "리포트 초안",
         value: String(reportDrafts.length),
-        helper: "초안까지만 자동화하고 발송은 검수 후 진행합니다.",
+        helper: "초안 생성까지만 자동화하고 최종 발송은 검수 후 진행합니다.",
         tone: "success",
       },
     ],

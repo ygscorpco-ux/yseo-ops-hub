@@ -22,9 +22,11 @@ export function EmptyState({
         className,
       )}
     >
-      <div className="mx-auto max-w-md space-y-2">
+      <div className="mx-auto max-w-2xl">
         <h3 className="text-sm font-semibold text-slate-950">{title}</h3>
-        <p className="text-sm leading-6 text-slate-600">{description}</p>
+        <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+          {description}
+        </p>
       </div>
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
     </div>

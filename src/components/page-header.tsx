@@ -14,18 +14,22 @@ export function PageHeader({
   actions,
 }: PageHeaderProps) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+    <section
+      className={`rounded-xl border border-slate-200 bg-white px-5 shadow-sm ${
+        eyebrow || description ? "py-4" : "py-3.5"
+      }`}
+    >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
           {eyebrow ? (
-            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-500">
               {eyebrow}
             </div>
           ) : null}
           <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
             {title}
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
             {description}
           </p>
         </div>

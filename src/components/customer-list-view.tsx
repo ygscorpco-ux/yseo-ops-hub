@@ -10,25 +10,12 @@ import { ReportPreviewDialog } from "@/components/report-preview-dialog";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
 import { SuggestionReviewDialog } from "@/components/suggestion-review-dialog";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import type { CustomerListEntry } from "@/lib/yseo/selectors";
+import {
+  compactSecondaryActionClass,
+  fieldClass,
+  secondaryActionClass,
+} from "@/lib/yseo/ui";
 import { formatRelativeTime } from "@/lib/utils";
 
 export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) {
@@ -55,149 +42,144 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
 
   return (
     <SectionCard
-      eyebrow="Customer scan"
-      title="고객 우선순위 스캔"
-      description="검색, 상태 태그, 채널 기준으로 고객을 빠르게 걸러보고 바로 상세나 제안 검토로 내려갈 수 있습니다."
+      eyebrow="CUSTOMER SCAN"
+      title="우선순위 고객 스캔"
+      description="검색, 상태 태그, 채널 기준으로 고객을 빠르게 걸러 보고 바로 상세나 제안 검토로 이동할 수 있습니다."
     >
-      <div className="flex flex-col gap-5">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-1 flex-col gap-3 sm:flex-row">
-            <div className="relative flex-1">
-              <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="고객명이나 요약으로 빠르게 찾기"
-                className="w-full border-slate-300 bg-white pl-9"
-              />
-            </div>
+      <div className="space-y-5">
+        <form
+          className="grid gap-3 md:grid-cols-[1.4fr_0.8fr_0.8fr_auto]"
+          onSubmit={(event) => event.preventDefault()}
+        >
+          <label className="relative block">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="고객명 또는 요약으로 찾기"
+              className={`${fieldClass} w-full pl-9`}
+            />
+          </label>
 
-            <Select
-              value={statusFilter}
-              onValueChange={(value) => setStatusFilter(value ?? "all")}
-            >
-              <SelectTrigger className="w-full border-slate-300 bg-white sm:w-40">
-                <SelectValue placeholder="상태 태그" />
-              </SelectTrigger>
-              <SelectContent className="border border-slate-200 bg-white">
-                <SelectGroup>
-                  <SelectItem value="all">전체 상태</SelectItem>
-                  <SelectItem value="긴급 조치">긴급 조치</SelectItem>
-                  <SelectItem value="오늘 확인">오늘 확인</SelectItem>
-                  <SelectItem value="관찰">관찰</SelectItem>
-                  <SelectItem value="정상">정상</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+            className={fieldClass}
+          >
+            <option value="all">전체 상태</option>
+            <option value="긴급 조치">긴급 조치</option>
+            <option value="오늘 확인">오늘 확인</option>
+            <option value="관찰">관찰</option>
+            <option value="정상">정상</option>
+          </select>
 
-            <Select
-              value={channelFilter}
-              onValueChange={(value) => setChannelFilter(value ?? "all")}
-            >
-              <SelectTrigger className="w-full border-slate-300 bg-white sm:w-48">
-                <SelectValue placeholder="채널" />
-              </SelectTrigger>
-              <SelectContent className="border border-slate-200 bg-white">
-                <SelectGroup>
-                  <SelectItem value="all">전체 채널</SelectItem>
-                  <SelectItem value="naver-searchad">네이버 검색광고</SelectItem>
-                  <SelectItem value="search-console">Search Console</SelectItem>
-                  <SelectItem value="business-profile">Business Profile</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+          <select
+            value={channelFilter}
+            onChange={(event) => setChannelFilter(event.target.value)}
+            className={fieldClass}
+          >
+            <option value="all">전체 채널</option>
+            <option value="naver-searchad">네이버 검색광고</option>
+            <option value="search-console">Search Console</option>
+            <option value="business-profile">Business Profile</option>
+          </select>
+
+          <div className="flex items-center justify-end text-sm text-slate-500">
+            {filteredEntries.length}개 고객
           </div>
-
-          <div className="text-sm text-slate-500">
-            현재 {filteredEntries.length}개 고객이 조건에 맞습니다.
-          </div>
-        </div>
+        </form>
 
         {filteredEntries.length === 0 ? (
           <EmptyState
-            title="조건에 맞는 고객이 없습니다."
+            title="조건에 맞는 고객이 없습니다"
             description="검색어나 필터를 바꾸면 다시 바로 볼 수 있습니다."
           />
         ) : (
-          <Table className="rounded-xl border border-slate-200 bg-white">
-            <TableHeader className="bg-slate-50">
-              <TableRow className="hover:bg-slate-50">
-                <TableHead className="px-4 text-slate-500">고객</TableHead>
-                <TableHead className="text-slate-500">상태</TableHead>
-                <TableHead className="text-slate-500">채널</TableHead>
-                <TableHead className="text-slate-500">최근 7일 요약</TableHead>
-                <TableHead className="text-slate-500">이슈</TableHead>
-                <TableHead className="text-slate-500">제안</TableHead>
-                <TableHead className="text-slate-500">마지막 sync</TableHead>
-                <TableHead className="px-4 text-right text-slate-500">바로 처리</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEntries.map((entry) => (
-                <TableRow key={entry.customer.id} className="hover:bg-slate-50">
-                  <TableCell className="px-4">
-                    <div className="flex flex-col gap-1">
-                      <Link
-                        href={`/customers/${entry.customer.id}`}
-                        className="font-medium text-slate-950 hover:text-slate-700"
-                      >
-                        {entry.customer.name}
-                      </Link>
-                      <span className="text-xs text-slate-500">
-                        {entry.customer.segment} · 담당 {entry.customer.primaryManager}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge value={entry.customer.statusTag} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">
-                      {entry.connections.map((connection) => (
-                        <ChannelBadge key={connection.id} channel={connection.channelType} />
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-sm whitespace-normal text-sm text-slate-600">
-                    {entry.summaryLine}
-                  </TableCell>
-                  <TableCell>{entry.openIssues.length}건</TableCell>
-                  <TableCell>{entry.pendingSuggestions.length}건</TableCell>
-                  <TableCell className="text-sm text-slate-500">
-                    {formatRelativeTime(entry.lastSyncAt)}
-                  </TableCell>
-                  <TableCell className="px-4">
-                    <div className="flex justify-end gap-2">
-                      <Link
-                        href={`/customers/${entry.customer.id}`}
-                        className={buttonVariants({ variant: "outline", size: "sm" })}
-                      >
-                        상세
-                        <ArrowUpRightIcon data-icon="inline-end" />
-                      </Link>
-                      {entry.pendingSuggestions.length > 0 ? (
-                        <SuggestionReviewDialog
-                          customerName={entry.customer.name}
-                          suggestions={entry.pendingSuggestions}
-                          triggerLabel={`제안 ${entry.pendingSuggestions.length}건`}
-                        />
-                      ) : null}
-                      {entry.latestReport ? (
-                        <ReportPreviewDialog
-                          customerName={entry.customer.name}
-                          report={entry.latestReport}
-                        />
-                      ) : (
-                        <Button variant="outline" size="sm" disabled>
-                          초안 없음
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-separate border-spacing-0 text-sm">
+              <thead>
+                <tr className="text-left text-[12px] font-semibold text-slate-500">
+                  <th className="border-b border-slate-200 px-3 py-2.5">고객</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">상태</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">채널</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">최근 7일 요약</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">이슈</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">제안</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">마지막 동기화</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5 text-right">
+                    바로 처리
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredEntries.map((entry) => (
+                  <tr key={entry.customer.id} className="hover:bg-slate-50">
+                    <td className="border-b border-slate-100 px-3 py-4 align-top">
+                      <div className="space-y-1">
+                        <Link
+                          href={`/customers/${entry.customer.id}`}
+                          className="font-medium text-slate-950 hover:text-slate-700"
+                        >
+                          {entry.customer.name}
+                        </Link>
+                        <div className="text-xs leading-5 text-slate-500">
+                          {entry.customer.segment} · 담당 {entry.customer.primaryManager}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top">
+                      <StatusBadge value={entry.customer.statusTag} />
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top">
+                      <div className="flex flex-wrap gap-2">
+                        {entry.connections.map((connection) => (
+                          <ChannelBadge key={connection.id} channel={connection.channelType} />
+                        ))}
+                      </div>
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top text-slate-600">
+                      <div className="max-w-sm whitespace-normal">{entry.summaryLine}</div>
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top">
+                      {entry.openIssues.length}건
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top">
+                      {entry.pendingSuggestions.length}건
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top text-slate-500">
+                      {formatRelativeTime(entry.lastSyncAt)}
+                    </td>
+                    <td className="border-b border-slate-100 px-3 py-4 align-top">
+                      <div className="flex justify-end gap-2">
+                        <Link
+                          href={`/customers/${entry.customer.id}`}
+                          className={`${compactSecondaryActionClass} rounded-md px-2.5 py-1.5 text-xs`}
+                        >
+                          상세
+                          <ArrowUpRightIcon className="ml-1 inline size-3.5" />
+                        </Link>
+                        {entry.pendingSuggestions.length > 0 ? (
+                          <SuggestionReviewDialog
+                            customerName={entry.customer.name}
+                            suggestions={entry.pendingSuggestions}
+                            triggerLabel={`제안 ${entry.pendingSuggestions.length}건`}
+                          />
+                        ) : null}
+                        {entry.latestReport ? (
+                          <ReportPreviewDialog
+                            customerName={entry.customer.name}
+                            report={entry.latestReport}
+                          />
+                        ) : (
+                          <span className={secondaryActionClass}>초안 없음</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </SectionCard>
