@@ -20,7 +20,7 @@ export default async function CustomerDetailPage({
   params: Promise<{ customerId: string }>;
 }) {
   const { customerId } = await params;
-  const detail = getCustomerDetailView(customerId);
+  const detail = await getCustomerDetailView(customerId);
 
   if (!detail) {
     notFound();

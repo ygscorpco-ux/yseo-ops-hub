@@ -1,14 +1,6 @@
-import {
-  channelConnections,
-  channelInsights,
-  customers,
-  internalMemos,
-  issues,
-  performanceSnapshots,
-  reportDrafts,
-  suggestions,
-  taskExecutions,
-} from "@/lib/yseo/data";
+import { sortByMostRecent } from "@/lib/utils";
+
+import { loadYseoData } from "@/lib/yseo/repository";
 import {
   channelLabels,
   customerStatusOrder,
@@ -16,11 +8,13 @@ import {
   type ChannelConnection,
   type ChannelInsight,
   type Customer,
+  type InternalMemo,
   type Issue,
+  type PerformanceSnapshot,
   type ReportDraft,
   type Suggestion,
+  type TaskExecution,
 } from "@/lib/yseo/types";
-import { sortByMostRecent } from "@/lib/utils";
 
 export interface CustomerListEntry {
   customer: Customer;
@@ -61,50 +55,47 @@ export interface CustomerDetailView {
   customer: Customer;
   connections: ChannelConnection[];
   insights: ChannelInsight[];
-  snapshots: typeof performanceSnapshots;
+  snapshots: PerformanceSnapshot[];
   openIssues: Issue[];
   suggestionSet: Suggestion[];
   reportDrafts: ReportDraft[];
-  logs: typeof taskExecutions;
-  memos: typeof internalMemos;
+  logs: TaskExecution[];
+  memos: InternalMemo[];
 }
 
-function getCustomer(customerId: string) {
-  return customers.find((customer) => customer.id === customerId);
+function getCustomerMap(customers: Customer[]) {
+  return new Map(customers.map((customer) => [customer.id, customer]));
 }
 
-function getConnections(customerId: string) {
-  return channelConnections.filter((connection) => connection.customerId === customerId);
-}
+export async function listCustomerEntries(): Promise<CustomerListEntry[]> {
+  const {
+    customers,
+    channelConnections,
+    issues,
+    performanceSnapshots,
+    reportDrafts,
+    suggestions,
+  } = await loadYseoData();
 
-function getOpenIssues(customerId: string) {
-  return issues.filter(
-    (issue) => issue.customerId === customerId && issue.status === "open",
-  );
-}
-
-function getSuggestions(customerId: string) {
-  return suggestions.filter((suggestion) => suggestion.customerId === customerId);
-}
-
-function getLatestReport(customerId: string) {
-  return reportDrafts
-    .filter((report) => report.customerId === customerId)
-    .sort(
-      (left, right) =>
-        new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
-    )[0];
-}
-
-export function listCustomerEntries(): CustomerListEntry[] {
   return customers
     .map((customer) => {
-      const connections = getConnections(customer.id);
-      const openIssues = getOpenIssues(customer.id);
-      const pendingSuggestions = getSuggestions(customer.id).filter(
-        (suggestion) => suggestion.approvalStatus === "pending",
+      const connections = channelConnections.filter(
+        (connection) => connection.customerId === customer.id,
       );
-      const latestReport = getLatestReport(customer.id);
+      const openIssues = issues.filter(
+        (issue) => issue.customerId === customer.id && issue.status === "open",
+      );
+      const pendingSuggestions = suggestions.filter(
+        (suggestion) =>
+          suggestion.customerId === customer.id &&
+          suggestion.approvalStatus === "pending",
+      );
+      const latestReport = reportDrafts
+        .filter((report) => report.customerId === customer.id)
+        .sort(
+          (left, right) =>
+            new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
+        )[0];
       const snapshotSummary =
         performanceSnapshots.find(
           (snapshot) =>
@@ -114,9 +105,11 @@ export function listCustomerEntries(): CustomerListEntry[] {
         )?.metricSetJson.summary ??
         openIssues[0]?.summary ??
         customer.memoSummary;
-      const lastSyncAt = sortByMostRecent(
-        connections.map((connection) => connection.lastSyncAt),
-      )[0];
+      const lastSyncCandidates = connections
+        .map((connection) => connection.lastSyncAt)
+        .filter(Boolean);
+      const lastSyncAt =
+        sortByMostRecent(lastSyncCandidates)[0] ?? customer.lastActionAt;
 
       return {
         customer,
@@ -125,7 +118,7 @@ export function listCustomerEntries(): CustomerListEntry[] {
         pendingSuggestions,
         latestReport,
         lastSyncAt,
-        summaryLine: String(snapshotSummary),
+        summaryLine: String(snapshotSummary ?? customer.memoSummary),
       };
     })
     .sort((left, right) => {
@@ -149,12 +142,15 @@ export function listCustomerEntries(): CustomerListEntry[] {
     });
 }
 
-export function listIssueQueueEntries(): IssueQueueEntry[] {
+export async function listIssueQueueEntries(): Promise<IssueQueueEntry[]> {
+  const { customers, issues, suggestions } = await loadYseoData();
+  const customerMap = getCustomerMap(customers);
+
   return issues
     .filter((issue) => issue.status === "open")
     .map((issue) => ({
       issue,
-      customer: getCustomer(issue.customerId)!,
+      customer: customerMap.get(issue.customerId)!,
       suggestionSet: suggestions.filter((suggestion) => suggestion.issueId === issue.id),
     }))
     .sort((left, right) => {
@@ -172,11 +168,14 @@ export function listIssueQueueEntries(): IssueQueueEntry[] {
     });
 }
 
-export function listReportEntries(): ReportListEntry[] {
+export async function listReportEntries(): Promise<ReportListEntry[]> {
+  const { customers, reportDrafts } = await loadYseoData();
+  const customerMap = getCustomerMap(customers);
+
   return reportDrafts
     .map((report) => ({
       report,
-      customer: getCustomer(report.customerId)!,
+      customer: customerMap.get(report.customerId)!,
     }))
     .sort(
       (left, right) =>
@@ -185,14 +184,17 @@ export function listReportEntries(): ReportListEntry[] {
     );
 }
 
-export function getDashboardView(): DashboardView {
-  const entries = listCustomerEntries();
-  const queueEntries = listIssueQueueEntries();
+export async function getDashboardView(): Promise<DashboardView> {
+  const [{ channelConnections, issues, reportDrafts, suggestions, customers }, entries, queueEntries] =
+    await Promise.all([loadYseoData(), listCustomerEntries(), listIssueQueueEntries()]);
+
+  const customerMap = getCustomerMap(customers);
+
   const connectionWatchlist = channelConnections
     .filter((connection) => connection.connectionStatus !== "connected")
     .map((connection) => ({
       ...connection,
-      customerName: getCustomer(connection.customerId)!.name,
+      customerName: customerMap.get(connection.customerId)?.name ?? connection.customerId,
     }))
     .sort((left, right) =>
       left.connectionStatus === right.connectionStatus
@@ -206,12 +208,13 @@ export function getDashboardView(): DashboardView {
     .filter((suggestion) => suggestion.approvalStatus === "pending")
     .map((suggestion) => ({
       ...suggestion,
-      customerName: getCustomer(suggestion.customerId)!.name,
+      customerName: customerMap.get(suggestion.customerId)?.name ?? suggestion.customerId,
     }))
     .sort((left, right) => {
-      const leftIssue = issues.find((issue) => issue.id === left.issueId)!;
-      const rightIssue = issues.find((issue) => issue.id === right.issueId)!;
-      return severityOrder[leftIssue.severity] - severityOrder[rightIssue.severity];
+      const leftIssue = issues.find((issue) => issue.id === left.issueId);
+      const rightIssue = issues.find((issue) => issue.id === right.issueId);
+
+      return severityOrder[leftIssue?.severity ?? "low"] - severityOrder[rightIssue?.severity ?? "low"];
     });
 
   return {
@@ -221,7 +224,7 @@ export function getDashboardView(): DashboardView {
         value: String(
           entries.filter((entry) => entry.customer.statusTag !== "정상").length,
         ),
-        helper: "정상 고객은 뒤로 밀고 예외만 앞으로 가져옵니다.",
+        helper: "정상 고객보다 예외 고객이 먼저 보이도록 정렬합니다.",
         tone: "critical",
       },
       {
@@ -229,25 +232,25 @@ export function getDashboardView(): DashboardView {
         value: String(
           queueEntries.filter((entry) => entry.issue.severity === "critical").length,
         ),
-        helper: "오늘 먼저 풀어야 할 치명도 기준입니다.",
+        helper: "오늘 먼저 손대야 할 치명 이슈 기준입니다.",
         tone: "warning",
       },
       {
         label: "연결 이상",
         value: String(connectionWatchlist.length),
-        helper: "토큰 만료, 제한, 누락 sync를 함께 셉니다.",
+        helper: "토큰 만료, 권한 문제, 실패 sync를 모아 봅니다.",
         tone: "info",
       },
       {
         label: "승인 대기 제안",
         value: String(pendingSuggestionList.length),
-        helper: "자동 실행 대신 승인 대기만 올립니다.",
+        helper: "자동 실행 대신 승인 대기 상태만 앞으로 올립니다.",
         tone: "warning",
       },
       {
         label: "리포트 초안",
         value: String(reportDrafts.length),
-        helper: "자동 요약은 초안까지만 만들고 발송은 수동입니다.",
+        helper: "초안 생성까지만 자동화하고 발송은 수동 검수합니다.",
         tone: "success",
       },
     ],
@@ -255,12 +258,26 @@ export function getDashboardView(): DashboardView {
     queueEntries: queueEntries.slice(0, 6),
     pendingSuggestions: pendingSuggestionList.slice(0, 5),
     connectionWatchlist: connectionWatchlist.slice(0, 5),
-    reports: listReportEntries().slice(0, 4),
+    reports: (await listReportEntries()).slice(0, 4),
   };
 }
 
-export function getCustomerDetailView(customerId: string): CustomerDetailView | null {
-  const customer = getCustomer(customerId);
+export async function getCustomerDetailView(
+  customerId: string,
+): Promise<CustomerDetailView | null> {
+  const {
+    channelConnections,
+    channelInsights,
+    customers,
+    internalMemos,
+    issues,
+    performanceSnapshots,
+    reportDrafts,
+    suggestions,
+    taskExecutions,
+  } = await loadYseoData();
+
+  const customer = customers.find((item) => item.id === customerId);
 
   if (!customer) {
     return null;
@@ -268,18 +285,25 @@ export function getCustomerDetailView(customerId: string): CustomerDetailView | 
 
   return {
     customer,
-    connections: getConnections(customerId).sort((left, right) =>
-      channelLabels[left.channelType].localeCompare(channelLabels[right.channelType]),
-    ),
+    connections: channelConnections
+      .filter((connection) => connection.customerId === customerId)
+      .sort((left, right) =>
+        channelLabels[left.channelType].localeCompare(channelLabels[right.channelType]),
+      ),
     insights: channelInsights.filter((insight) => insight.customerId === customerId),
     snapshots: performanceSnapshots.filter((snapshot) => snapshot.customerId === customerId),
-    openIssues: getOpenIssues(customerId).sort(
-      (left, right) => severityOrder[left.severity] - severityOrder[right.severity],
-    ),
-    suggestionSet: getSuggestions(customerId).sort((left, right) =>
-      left.approvalStatus.localeCompare(right.approvalStatus),
-    ),
-    reportDrafts: reportDrafts.filter((report) => report.customerId === customerId),
+    openIssues: issues
+      .filter((issue) => issue.customerId === customerId && issue.status === "open")
+      .sort((left, right) => severityOrder[left.severity] - severityOrder[right.severity]),
+    suggestionSet: suggestions
+      .filter((suggestion) => suggestion.customerId === customerId)
+      .sort((left, right) => left.approvalStatus.localeCompare(right.approvalStatus)),
+    reportDrafts: reportDrafts
+      .filter((report) => report.customerId === customerId)
+      .sort(
+        (left, right) =>
+          new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
+      ),
     logs: taskExecutions
       .filter((log) => log.customerId === customerId)
       .sort(

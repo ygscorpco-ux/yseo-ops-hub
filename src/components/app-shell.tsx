@@ -32,8 +32,8 @@ const navItems = [
   },
 ];
 
-export function AppShell({ children }: { children: ReactNode }) {
-  const dashboard = getDashboardView();
+export async function AppShell({ children }: { children: ReactNode }) {
+  const dashboard = await getDashboardView();
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(23,92,72,0.12),transparent_24%),radial-gradient(circle_at_top_right,rgba(159,109,55,0.14),transparent_28%),linear-gradient(180deg,#f5efe5_0%,#f9f7f1_100%)] text-foreground">

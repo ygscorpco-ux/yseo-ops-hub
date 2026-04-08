@@ -19,6 +19,8 @@ export const customersTable = pgTable("yseo_customers", {
   memoSummary: text("memo_summary"),
   focus: text("focus"),
   priorityRank: integer("priority_rank").default(0).notNull(),
+  nextReviewAt: timestamp("next_review_at", { withTimezone: true }),
+  lastActionAt: timestamp("last_action_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -48,6 +50,34 @@ export const performanceSnapshotsTable = pgTable("yseo_performance_snapshots", {
   metricSetJson: jsonb("metric_set_json").notNull(),
   completenessState: varchar("completeness_state", { length: 16 }).notNull(),
   capturedAt: timestamp("captured_at", { withTimezone: true }).notNull(),
+});
+
+export const externalReferencesTable = pgTable("yseo_external_references", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  channelConnectionId: varchar("channel_connection_id", { length: 64 }).notNull(),
+  externalType: varchar("external_type", { length: 24 }).notNull(),
+  externalId: text("external_id").notNull(),
+  externalName: text("external_name").notNull(),
+  parentExternalId: text("parent_external_id"),
+});
+
+export const channelInsightsTable = pgTable("yseo_channel_insights", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  customerId: varchar("customer_id", { length: 64 }).notNull(),
+  channelType: varchar("channel_type", { length: 32 }).notNull(),
+  freshnessLabel: text("freshness_label").notNull(),
+  headline: text("headline").notNull(),
+  note: text("note").notNull(),
+  metrics: jsonb("metrics")
+    .$type<
+      Array<{
+        label: string;
+        value: string;
+        delta?: string;
+        tone?: "up" | "down" | "flat";
+      }>
+    >()
+    .notNull(),
 });
 
 export const issuesTable = pgTable("yseo_issues", {
@@ -102,6 +132,21 @@ export const internalMemosTable = pgTable("yseo_internal_memos", {
   memoType: varchar("memo_type", { length: 16 }).notNull(),
   createdBy: text("created_by").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export const taskExecutionsTable = pgTable("yseo_task_executions", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  customerId: varchar("customer_id", { length: 64 }).notNull(),
+  suggestionId: varchar("suggestion_id", { length: 64 }),
+  actionType: varchar("action_type", { length: 64 }).notNull(),
+  actorType: varchar("actor_type", { length: 16 }).notNull(),
+  actorName: text("actor_name").notNull(),
+  resultStatus: varchar("result_status", { length: 16 }).notNull(),
+  externalRequestRef: text("external_request_ref"),
+  beforeJson: jsonb("before_json"),
+  afterJson: jsonb("after_json"),
+  summary: text("summary").notNull(),
+  executedAt: timestamp("executed_at", { withTimezone: true }).notNull(),
 });
 
 export const syncRunsTable = pgTable("yseo_sync_runs", {

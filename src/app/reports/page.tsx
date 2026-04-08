@@ -3,8 +3,8 @@ import { PageHeader } from "@/components/page-header";
 import { ReportListView } from "@/components/report-list-view";
 import { listReportEntries } from "@/lib/yseo/selectors";
 
-export default function ReportsPage() {
-  const entries = listReportEntries();
+export default async function ReportsPage() {
+  const entries = await listReportEntries();
 
   return (
     <div className="flex flex-col gap-8">

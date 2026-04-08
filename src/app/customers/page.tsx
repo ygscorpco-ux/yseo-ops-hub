@@ -2,8 +2,8 @@ import { PageHeader } from "@/components/page-header";
 import { CustomerListView } from "@/components/customer-list-view";
 import { listCustomerEntries } from "@/lib/yseo/selectors";
 
-export default function CustomersPage() {
-  const entries = listCustomerEntries();
+export default async function CustomersPage() {
+  const entries = await listCustomerEntries();
 
   return (
     <div className="flex flex-col gap-8">

@@ -3,8 +3,8 @@ import { IssueQueueView } from "@/components/issue-queue-view";
 import { PageHeader } from "@/components/page-header";
 import { listIssueQueueEntries } from "@/lib/yseo/selectors";
 
-export default function IssuesPage() {
-  const entries = listIssueQueueEntries();
+export default async function IssuesPage() {
+  const entries = await listIssueQueueEntries();
 
   return (
     <div className="flex flex-col gap-8">

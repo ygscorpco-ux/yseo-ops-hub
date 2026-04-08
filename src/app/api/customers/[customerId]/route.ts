@@ -5,7 +5,7 @@ export async function GET(
   { params }: { params: Promise<{ customerId: string }> },
 ) {
   const { customerId } = await params;
-  const detail = getCustomerDetailView(customerId);
+  const detail = await getCustomerDetailView(customerId);
 
   if (!detail) {
     return Response.json(

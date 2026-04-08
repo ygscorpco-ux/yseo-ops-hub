@@ -10,8 +10,8 @@ import { getDashboardView } from "@/lib/yseo/selectors";
 import { channelLabels } from "@/lib/yseo/types";
 import { formatRelativeTime } from "@/lib/utils";
 
-export default function HomePage() {
-  const dashboard = getDashboardView();
+export default async function HomePage() {
+  const dashboard = await getDashboardView();
 
   return (
     <div className="flex flex-col gap-8">
