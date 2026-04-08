@@ -48,6 +48,24 @@ export interface NaverSearchAdCredentials {
   customerId: string;
 }
 
+export interface SearchConsoleCredentials {
+  clientId?: string;
+  clientSecret?: string;
+  redirectUri?: string;
+  refreshToken?: string;
+  siteUrl?: string;
+}
+
+export interface BusinessProfileCredentials {
+  clientId?: string;
+  clientSecret?: string;
+  redirectUri?: string;
+  approved: boolean;
+  refreshToken?: string;
+  accountId?: string;
+  locationId?: string;
+}
+
 export interface NaverManagedCustomer {
   customerId: string;
   customerName: string;
@@ -80,6 +98,41 @@ export function getNaverSearchAdCredentials():
     secretKey,
     customerId,
   };
+}
+
+export function getSearchConsoleCredentials(): SearchConsoleCredentials {
+  return {
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    redirectUri: process.env.GOOGLE_OAUTH_REDIRECT_URI,
+    refreshToken: process.env.GOOGLE_SEARCH_CONSOLE_REFRESH_TOKEN,
+    siteUrl: process.env.GOOGLE_SEARCH_CONSOLE_SITE_URL,
+  };
+}
+
+export function getBusinessProfileCredentials(): BusinessProfileCredentials {
+  return {
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    redirectUri: process.env.GOOGLE_OAUTH_REDIRECT_URI,
+    approved: process.env.GOOGLE_BUSINESS_PROFILE_APPROVED === "true",
+    refreshToken: process.env.GOOGLE_BUSINESS_PROFILE_REFRESH_TOKEN,
+    accountId: process.env.GOOGLE_BUSINESS_PROFILE_ACCOUNT_ID,
+    locationId: process.env.GOOGLE_BUSINESS_PROFILE_LOCATION_ID,
+  };
+}
+
+function hasGoogleOAuthAppConfig(
+  credentials: Pick<
+    SearchConsoleCredentials | BusinessProfileCredentials,
+    "clientId" | "clientSecret" | "redirectUri"
+  >,
+) {
+  return Boolean(
+    credentials.clientId &&
+      credentials.clientSecret &&
+      credentials.redirectUri,
+  );
 }
 
 function buildNaverSignature(
@@ -482,14 +535,163 @@ export class NaverSearchAdAdapter implements ChannelAdapter {
 }
 
 export class SearchConsoleAdapter extends MockAdapter {
+  private readonly credentials = getSearchConsoleCredentials();
+
   constructor() {
     super("search-console");
+  }
+
+  override async validateConnection(): Promise<ConnectionValidationResult> {
+    if (!hasGoogleOAuthAppConfig(this.credentials)) {
+      return {
+        ok: false,
+        connectionStatus: "blocked",
+        message: "Google OAuth 앱 설정이 아직 끝나지 않았습니다.",
+      };
+    }
+
+    if (!this.credentials.refreshToken) {
+      return {
+        ok: false,
+        connectionStatus: "attention",
+        message:
+          "Google OAuth 앱은 준비됐지만 Search Console 운영자 계정 연결이 아직 끝나지 않았습니다.",
+      };
+    }
+
+    if (!this.credentials.siteUrl) {
+      return {
+        ok: false,
+        connectionStatus: "attention",
+        message:
+          "Search Console 운영자 계정 연결은 완료됐지만 대표 property 선택이 아직 필요합니다.",
+      };
+    }
+
+    return {
+      ok: true,
+      connectionStatus: "connected",
+      message: "Search Console 실연동 준비가 끝났습니다.",
+      externalRefs: [this.credentials.siteUrl],
+    };
+  }
+
+  override async listAccountsOrProperties() {
+    return this.credentials.siteUrl ? [this.credentials.siteUrl] : [];
+  }
+
+  override async syncCoreEntities(): Promise<SyncResult> {
+    return {
+      ok: false,
+      syncedCount: 0,
+      message:
+        "Search Console 실데이터 수집은 OAuth 연결과 property 선택을 마친 뒤 다음 단계에서 활성화됩니다.",
+    };
+  }
+
+  override async syncPerformance(): Promise<SyncResult> {
+    return {
+      ok: false,
+      syncedCount: 0,
+      message:
+        "Search Console Search Analytics 수집은 다음 단계에서 붙습니다.",
+    };
+  }
+
+  override async executeApprovedAction(): Promise<ActionExecutionResult> {
+    return {
+      ok: false,
+      message:
+        "Search Console은 읽기 중심 채널이라 승인 기반 실행 액션이 제한됩니다.",
+    };
   }
 }
 
 export class BusinessProfileAdapter extends MockAdapter {
+  private readonly credentials = getBusinessProfileCredentials();
+
   constructor() {
     super("business-profile");
+  }
+
+  override async validateConnection(): Promise<ConnectionValidationResult> {
+    if (!hasGoogleOAuthAppConfig(this.credentials)) {
+      return {
+        ok: false,
+        connectionStatus: "blocked",
+        message: "Google OAuth 앱 설정이 아직 끝나지 않았습니다.",
+      };
+    }
+
+    if (!this.credentials.approved) {
+      return {
+        ok: false,
+        connectionStatus: "blocked",
+        message:
+          "Business Profile API 프로젝트 승인 전이라 실연동을 시작할 수 없습니다.",
+      };
+    }
+
+    if (!this.credentials.refreshToken) {
+      return {
+        ok: false,
+        connectionStatus: "attention",
+        message:
+          "Business Profile 프로젝트 승인은 끝났지만 운영자 Google 계정 연결이 아직 필요합니다.",
+      };
+    }
+
+    if (!this.credentials.accountId || !this.credentials.locationId) {
+      return {
+        ok: false,
+        connectionStatus: "attention",
+        message:
+          "Business Profile 계정 연결은 됐지만 account/location 선택이 아직 필요합니다.",
+      };
+    }
+
+    return {
+      ok: true,
+      connectionStatus: "connected",
+      message: "Business Profile 실연동 준비가 끝났습니다.",
+      externalRefs: [
+        this.credentials.accountId,
+        this.credentials.locationId,
+      ].filter(Boolean) as string[],
+    };
+  }
+
+  override async listAccountsOrProperties() {
+    return [
+      this.credentials.accountId,
+      this.credentials.locationId,
+    ].filter(Boolean) as string[];
+  }
+
+  override async syncCoreEntities(): Promise<SyncResult> {
+    return {
+      ok: false,
+      syncedCount: 0,
+      message:
+        "Business Profile 실데이터 수집은 프로젝트 승인과 account/location 선택을 마친 뒤 3단계에서 활성화됩니다.",
+    };
+  }
+
+  override async syncPerformance(): Promise<SyncResult> {
+    return {
+      ok: false,
+      syncedCount: 0,
+      message:
+        "Business Profile 성과 수집은 3단계 로드맵에서 붙습니다.",
+    };
+  }
+
+  override async executeApprovedAction(): Promise<ActionExecutionResult> {
+    return {
+      ok: false,
+      message:
+        "Business Profile 답글/포스트 실행은 승인과 계정 연결 후에만 활성화됩니다.",
+    };
   }
 }
 

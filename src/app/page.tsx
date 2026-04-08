@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FileTextIcon, TriangleAlertIcon } from "lucide-react";
 
 import { ChannelBadge } from "@/components/channel-badge";
+import { GoogleApiReadinessPanel } from "@/components/google-api-readiness-panel";
 import { MetricCard } from "@/components/metric-card";
 import { NaverSyncPanel } from "@/components/naver-sync-panel";
 import { PageHeader } from "@/components/page-header";
@@ -60,7 +61,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <NaverSyncPanel />
+      <section className="grid gap-4 xl:grid-cols-[1.08fr_0.92fr]">
+        <NaverSyncPanel />
+        <GoogleApiReadinessPanel />
+      </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {dashboard.metrics.map((metric) => (
