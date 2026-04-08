@@ -27,7 +27,7 @@ export function ReportPreviewDialog({
 }: ReportPreviewDialogProps) {
   const [operatorNote, setOperatorNote] = useState("");
   const [statusText, setStatusText] = useState(
-    "자동 초안을 검수해 외부 발송 전에 다듬으세요.",
+    "자동 초안을 검토한 뒤 전달용 문장을 정리하세요.",
   );
 
   function regenerateDraft() {
@@ -38,7 +38,7 @@ export function ReportPreviewDialog({
 
   function exportDraft() {
     startTransition(() => {
-      setStatusText("내보내기 시뮬레이션 완료. 실제 발송은 아직 수동 단계입니다.");
+      setStatusText("내보내기 준비 상태로 표시했습니다. 실제 발송은 아직 수동 단계입니다.");
     });
   }
 
@@ -46,44 +46,44 @@ export function ReportPreviewDialog({
     <Dialog>
       <DialogTrigger render={<Button variant="outline" size="sm" />}>
         <FileTextIcon data-icon="inline-start" />
-        리포트 초안
+        초안 보기
       </DialogTrigger>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl rounded-2xl border-slate-200 bg-white shadow-2xl">
         <DialogHeader>
           <DialogTitle>{customerName} 리포트 초안</DialogTitle>
           <DialogDescription>
-            자동 생성은 초안까지입니다. 고객사 전달 전 최종 문장은 운영자가 확인합니다.
+            자동 생성은 초안까지만 담당합니다. 최종 문장과 발송 여부는 운영자가 결정합니다.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="rounded-[24px] border border-border/70 bg-muted/20 p-5">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
             <div className="flex flex-col gap-2">
-              <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                 Summary
               </span>
-              <h3 className="text-lg font-semibold">{report.title}</h3>
-              <p className="text-sm leading-7 text-muted-foreground">{report.summary}</p>
+              <h3 className="text-lg font-semibold text-slate-950">{report.title}</h3>
+              <p className="text-sm leading-7 text-slate-600">{report.summary}</p>
             </div>
 
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
               <div>
-                <h4 className="text-sm font-medium">핵심 변화</h4>
-                <ul className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
+                <h4 className="text-sm font-semibold text-slate-950">주요 변화</h4>
+                <ul className="mt-3 flex flex-col gap-2 text-sm text-slate-600">
                   {report.highlights.map((item) => (
                     <li key={item} className="flex gap-2">
-                      <span className="mt-2 size-1.5 rounded-full bg-foreground/40" />
+                      <span className="mt-2 size-1.5 rounded-full bg-slate-400" />
                       <span>{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
               <div>
-                <h4 className="text-sm font-medium">다음 액션</h4>
-                <ul className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
+                <h4 className="text-sm font-semibold text-slate-950">다음 액션</h4>
+                <ul className="mt-3 flex flex-col gap-2 text-sm text-slate-600">
                   {report.nextActions.map((item) => (
                     <li key={item} className="flex gap-2">
-                      <span className="mt-2 size-1.5 rounded-full bg-foreground/40" />
+                      <span className="mt-2 size-1.5 rounded-full bg-slate-400" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -92,18 +92,19 @@ export function ReportPreviewDialog({
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-border/70 bg-background p-5">
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
             <div className="flex flex-col gap-3">
-              <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                Operator Note
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Operator note
               </span>
               <Textarea
                 value={operatorNote}
                 onChange={(event) => setOperatorNote(event.target.value)}
-                placeholder="고객사에 전달하기 전에 덧붙일 운영자 메모를 적으세요."
+                placeholder="고객사 전달 전에 붙일 운영 메모를 적어두세요."
                 rows={10}
+                className="border-slate-300 bg-white"
               />
-              <p className="text-sm leading-6 text-muted-foreground">{statusText}</p>
+              <p className="text-sm leading-6 text-slate-600">{statusText}</p>
             </div>
           </div>
         </div>

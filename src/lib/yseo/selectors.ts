@@ -1,5 +1,4 @@
 import { sortByMostRecent } from "@/lib/utils";
-
 import { loadYseoData } from "@/lib/yseo/repository";
 import {
   channelLabels,
@@ -214,7 +213,10 @@ export async function getDashboardView(): Promise<DashboardView> {
       const leftIssue = issues.find((issue) => issue.id === left.issueId);
       const rightIssue = issues.find((issue) => issue.id === right.issueId);
 
-      return severityOrder[leftIssue?.severity ?? "low"] - severityOrder[rightIssue?.severity ?? "low"];
+      return (
+        severityOrder[leftIssue?.severity ?? "low"] -
+        severityOrder[rightIssue?.severity ?? "low"]
+      );
     });
 
   return {
@@ -232,7 +234,7 @@ export async function getDashboardView(): Promise<DashboardView> {
         value: String(
           queueEntries.filter((entry) => entry.issue.severity === "critical").length,
         ),
-        helper: "오늘 먼저 손대야 할 치명 이슈 기준입니다.",
+        helper: "오늘 바로 확인할 치명 이슈 기준입니다.",
         tone: "warning",
       },
       {
@@ -244,13 +246,13 @@ export async function getDashboardView(): Promise<DashboardView> {
       {
         label: "승인 대기 제안",
         value: String(pendingSuggestionList.length),
-        helper: "자동 실행 대신 승인 대기 상태만 앞으로 올립니다.",
+        helper: "자동 실행 없이 승인 대기 상태만 앞으로 올립니다.",
         tone: "warning",
       },
       {
         label: "리포트 초안",
         value: String(reportDrafts.length),
-        helper: "초안 생성까지만 자동화하고 발송은 수동 검수합니다.",
+        helper: "초안까지만 자동화하고 발송은 검수 후 진행합니다.",
         tone: "success",
       },
     ],

@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 
-import { ActivityIcon, FileTextIcon, LayoutGridIcon, ListTodoIcon } from "lucide-react";
+import {
+  ActivityIcon,
+  FileTextIcon,
+  LayoutGridIcon,
+  ListTodoIcon,
+} from "lucide-react";
 
 import { AppNavLink } from "@/components/app-nav-link";
 import { getDashboardView } from "@/lib/yseo/selectors";
@@ -9,25 +14,25 @@ const navItems = [
   {
     href: "/",
     label: "대시보드",
-    caption: "오늘 손댈 고객과 위험 신호",
+    caption: "오늘 처리할 고객과 이슈",
     icon: LayoutGridIcon,
   },
   {
     href: "/customers",
     label: "고객 리스트",
-    caption: "100개 고객을 빠르게 훑는 운영 화면",
+    caption: "100개 고객을 빠르게 스캔",
     icon: ActivityIcon,
   },
   {
     href: "/issues",
     label: "작업 큐",
-    caption: "이슈, 제안, 승인 대기 중심",
+    caption: "이슈와 승인 대기 처리",
     icon: ListTodoIcon,
   },
   {
     href: "/reports",
     label: "리포트",
-    caption: "초안 생성과 검수 흐름",
+    caption: "초안 검수와 내보내기 준비",
     icon: FileTextIcon,
   },
 ];
@@ -36,69 +41,65 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const dashboard = await getDashboardView();
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(23,92,72,0.12),transparent_24%),radial-gradient(circle_at_top_right,rgba(159,109,55,0.14),transparent_28%),linear-gradient(180deg,#f5efe5_0%,#f9f7f1_100%)] text-foreground">
-      <div className="mx-auto grid min-h-screen max-w-[1600px] gap-6 px-4 py-4 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-6">
-        <aside className="rounded-[32px] bg-[linear-gradient(180deg,#1b3c35_0%,#102723_100%)] p-5 text-white shadow-[0_30px_80px_rgba(16,39,35,0.24)] lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)]">
-          <div className="flex h-full flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-medium uppercase tracking-[0.28em] text-white/55">
+    <div className="min-h-screen bg-slate-100 text-slate-950">
+      <div className="mx-auto min-h-screen max-w-[1600px] px-4 py-4 md:px-6 lg:px-8 lg:py-5">
+        <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
+          <aside className="hidden min-h-[calc(100vh-2.5rem)] rounded-xl border border-slate-800 bg-slate-950 p-4 text-slate-100 lg:flex lg:flex-col">
+            <div className="flex min-h-[120px] flex-col justify-center border-b border-white/10 px-2 pb-5">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                 YSEO
               </span>
-              <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-semibold tracking-tight">
-                  Search Ops Action Hub
-                </h1>
-                <p className="text-sm leading-6 text-white/68">
-                  정상 고객을 길게 보여주지 않고, 지금 처리해야 할 고객과 작업만 앞으로 끌어옵니다.
-                </p>
-              </div>
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+                Search Ops Hub
+              </h1>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                정상 고객은 뒤로 보내고, 지금 처리할 고객과 작업만 앞으로 끌어옵니다.
+              </p>
             </div>
 
-            <nav className="flex flex-col gap-3">
+            <nav className="mt-4 flex flex-col gap-2">
               {navItems.map(({ href, label, caption, icon: Icon }) => (
-                <div key={href} className="relative">
-                  <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
-                    <Icon className="size-4 text-white/45" />
+                <div key={href} className="flex items-start gap-2">
+                  <div className="pt-3 pl-1 text-slate-500">
+                    <Icon className="size-4" />
                   </div>
-                  <div className="pl-7">
+                  <div className="min-w-0 flex-1">
                     <AppNavLink href={href} label={label} caption={caption} />
                   </div>
                 </div>
               ))}
             </nav>
 
-            <div className="mt-auto rounded-[28px] border border-white/10 bg-white/[0.06] p-4">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs uppercase tracking-[0.24em] text-white/45">
-                  운영 스냅샷
-                </span>
-                <p className="text-sm text-white/72">
-                  처리 필요 고객 {dashboard.metrics[0]?.value}개, 승인 대기 제안{" "}
-                  {dashboard.metrics[3]?.value}건
-                </p>
-              </div>
-
-              <div className="mt-4 flex flex-col gap-3 text-sm">
+            <div className="mt-auto rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                운영 요약
+              </p>
+              <div className="mt-3 space-y-2 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-white/55">긴급 이슈</span>
-                  <span className="font-medium">{dashboard.metrics[1]?.value}</span>
+                  <span className="text-slate-400">처리 필요 고객</span>
+                  <span className="font-medium text-white">{dashboard.metrics[0]?.value}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-white/55">연결 이상</span>
-                  <span className="font-medium">{dashboard.metrics[2]?.value}</span>
+                  <span className="text-slate-400">긴급 이슈</span>
+                  <span className="font-medium text-white">{dashboard.metrics[1]?.value}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-white/55">리포트 초안</span>
-                  <span className="font-medium">{dashboard.metrics[4]?.value}</span>
+                  <span className="text-slate-400">승인 대기 제안</span>
+                  <span className="font-medium text-white">{dashboard.metrics[3]?.value}</span>
                 </div>
               </div>
             </div>
-          </div>
-        </aside>
+          </aside>
 
-        <main className="min-w-0 rounded-[32px] border border-border/70 bg-background/90 p-5 shadow-[0_20px_70px_rgba(15,23,42,0.08)] backdrop-blur sm:p-7">
-          {children}
-        </main>
+          <div className="min-w-0">
+            <div className="mb-4 flex flex-wrap gap-2 lg:hidden">
+              {navItems.map(({ href, label }) => (
+                <AppNavLink key={href} href={href} label={label} caption="" />
+              ))}
+            </div>
+            <main className="min-w-0">{children}</main>
+          </div>
+        </div>
       </div>
     </div>
   );

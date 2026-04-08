@@ -7,17 +7,17 @@ export default async function ReportsPage() {
   const entries = await listReportEntries();
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <PageHeader
-        eyebrow="Report Drafts"
+        eyebrow="Report drafts"
         title="리포트"
-        description="자동 요약은 초안까지만 만들고, 최종 문장은 운영자가 정리하는 흐름을 전제로 구성했습니다. 분석 툴이 아니라 반복 문서 작업을 줄이는 보조 화면입니다."
+        description="자동 요약은 초안까지만 만듭니다. 최종 문장과 발송은 운영자가 검토한 뒤 진행하는 흐름으로 유지합니다."
       />
 
-      <Alert>
-        <AlertTitle>자동화 범위</AlertTitle>
+      <Alert className="rounded-xl border-slate-200 bg-white text-slate-700 shadow-sm">
+        <AlertTitle className="text-slate-950">자동화 범위</AlertTitle>
         <AlertDescription>
-          YSEO는 리포트를 자동 발송하지 않습니다. 초안 생성, 재생성, 내부 메모 보조까지만 하고, 외부 발송은 수동 검수 이후에 진행하는 방식이 안전합니다.
+          YSEO는 리포트를 자동 발송하지 않습니다. 초안 생성과 검수 보조까지만 담당합니다.
         </AlertDescription>
       </Alert>
 

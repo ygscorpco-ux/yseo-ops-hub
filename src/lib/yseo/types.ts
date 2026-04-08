@@ -3,7 +3,7 @@ export type ChannelType =
   | "search-console"
   | "business-profile";
 
-export type CustomerStatusTag = "긴급 조치" | "오늘 점검" | "관찰" | "정상";
+export type CustomerStatusTag = "긴급 조치" | "오늘 확인" | "관찰" | "정상";
 
 export type ConnectionStatus = "connected" | "attention" | "blocked";
 
@@ -167,7 +167,7 @@ export const channelLabels: Record<ChannelType, string> = {
 
 export const customerStatusOrder: Record<CustomerStatusTag, number> = {
   "긴급 조치": 0,
-  "오늘 점검": 1,
+  "오늘 확인": 1,
   관찰: 2,
   정상: 3,
 };

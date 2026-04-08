@@ -8,25 +8,29 @@ interface MetricTileProps {
 }
 
 const toneClasses = {
-  critical: "border-destructive/20 bg-destructive/6",
-  warning: "border-warning/20 bg-warning/7",
-  info: "border-info/15 bg-info/6",
-  success: "border-success/18 bg-success/6",
+  critical: "border-rose-200 bg-white",
+  warning: "border-amber-200 bg-white",
+  info: "border-slate-200 bg-white",
+  success: "border-emerald-200 bg-white",
 };
 
 export function MetricTile({ label, value, helper, tone }: MetricTileProps) {
   return (
     <article
       className={cn(
-        "flex min-h-32 flex-col justify-between rounded-[24px] border p-4",
+        "flex min-h-28 flex-col justify-between rounded-xl border px-4 py-3 shadow-sm",
         toneClasses[tone],
       )}
     >
       <div className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-muted-foreground">{label}</span>
-        <strong className="text-3xl font-semibold tracking-tight">{value}</strong>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          {label}
+        </span>
+        <strong className="text-2xl font-semibold tracking-tight text-slate-950">
+          {value}
+        </strong>
       </div>
-      <p className="text-sm leading-6 text-muted-foreground">{helper}</p>
+      <p className="text-sm leading-6 text-slate-600">{helper}</p>
     </article>
   );
 }

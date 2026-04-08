@@ -14,21 +14,21 @@ type StatusValue =
   | SuggestionStatus;
 
 const toneMap: Record<StatusValue, string> = {
-  "긴급 조치": "bg-destructive/12 text-destructive ring-destructive/10",
-  "오늘 점검": "bg-warning/18 text-warning-foreground ring-warning/15",
-  관찰: "bg-info/14 text-info-foreground ring-info/10",
-  정상: "bg-success/14 text-success-foreground ring-success/10",
-  connected: "bg-success/14 text-success-foreground ring-success/10",
-  attention: "bg-warning/18 text-warning-foreground ring-warning/15",
-  blocked: "bg-destructive/12 text-destructive ring-destructive/10",
-  critical: "bg-destructive/12 text-destructive ring-destructive/10",
-  high: "bg-warning/18 text-warning-foreground ring-warning/15",
-  medium: "bg-info/14 text-info-foreground ring-info/10",
-  low: "bg-muted text-muted-foreground ring-border",
-  pending: "bg-warning/18 text-warning-foreground ring-warning/15",
-  approved: "bg-info/14 text-info-foreground ring-info/10",
-  executed: "bg-success/14 text-success-foreground ring-success/10",
-  paused: "bg-muted text-muted-foreground ring-border",
+  "긴급 조치": "bg-rose-50 text-rose-700 ring-rose-200",
+  "오늘 확인": "bg-amber-50 text-amber-700 ring-amber-200",
+  관찰: "bg-sky-50 text-sky-700 ring-sky-200",
+  정상: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  connected: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  attention: "bg-amber-50 text-amber-700 ring-amber-200",
+  blocked: "bg-rose-50 text-rose-700 ring-rose-200",
+  critical: "bg-rose-50 text-rose-700 ring-rose-200",
+  high: "bg-amber-50 text-amber-700 ring-amber-200",
+  medium: "bg-sky-50 text-sky-700 ring-sky-200",
+  low: "bg-slate-100 text-slate-600 ring-slate-200",
+  pending: "bg-amber-50 text-amber-700 ring-amber-200",
+  approved: "bg-sky-50 text-sky-700 ring-sky-200",
+  executed: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  paused: "bg-slate-100 text-slate-600 ring-slate-200",
 };
 
 interface StatusBadgeProps {
@@ -41,7 +41,7 @@ export function StatusBadge({ value, label, className }: StatusBadgeProps) {
   return (
     <Badge
       className={cn(
-        "rounded-full border-0 px-2.5 py-1 text-xs font-medium ring-1",
+        "rounded-full border-0 px-2.5 py-1 text-xs font-medium ring-1 shadow-none",
         toneMap[value],
         className,
       )}
