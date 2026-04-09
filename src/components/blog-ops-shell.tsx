@@ -8,9 +8,7 @@ import { AppNavLink } from "@/components/app-nav-link";
 
 const navItems = [
   { href: "/", label: "대시보드" },
-  { href: "/customers", label: "고객 리스트" },
-  { href: "/issues", label: "작업 큐" },
-  { href: "/reports", label: "리포트" },
+  { href: "/customers", label: "고객" },
 ];
 
 export function BlogOpsShell({ children }: { children: ReactNode }) {

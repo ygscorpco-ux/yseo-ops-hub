@@ -5,10 +5,9 @@ import { getDb } from "@/lib/db/client";
 import {
   channelConnectionsTable,
   customersTable,
-  internalMemosTable,
   taskExecutionsTable,
 } from "@/lib/db/schema";
-import type { ConnectionStatus, CustomerStatusTag } from "@/lib/yseo/types";
+import type { ConnectionStatus } from "@/lib/yseo/types";
 
 function makeId(...parts: Array<string | number>) {
   return parts
@@ -22,12 +21,6 @@ function makeId(...parts: Array<string | number>) {
 
 interface CreateCustomerPayload {
   name?: string;
-  primaryManager?: string;
-  segment?: string;
-  focus?: string;
-  reportingProfile?: "주간" | "격주" | "월간";
-  statusTag?: CustomerStatusTag;
-  memoSummary?: string;
   naverCustomerId?: string;
   naverDisplayName?: string;
   naverConnectionStatus?: ConnectionStatus;
@@ -36,28 +29,13 @@ interface CreateCustomerPayload {
 export async function POST(request: Request) {
   const payload = (await request.json()) as CreateCustomerPayload;
   const name = payload.name?.trim();
-  const primaryManager = payload.primaryManager?.trim();
-  const segment = payload.segment?.trim() || "신규 고객";
-  const focus =
-    payload.focus?.trim() || "첫 연결과 기준 KPI를 확인하고 운영 기준선을 설정합니다.";
-  const reportingProfile = payload.reportingProfile ?? "주간";
-  const statusTag = payload.statusTag ?? "오늘 확인";
-  const memoSummary = payload.memoSummary?.trim() ?? "";
   const naverCustomerId = payload.naverCustomerId?.trim() ?? "";
   const naverDisplayName = payload.naverDisplayName?.trim() ?? "";
-  const naverConnectionStatus =
-    payload.naverConnectionStatus ?? "attention";
+  const naverConnectionStatus = payload.naverConnectionStatus ?? "attention";
 
   if (!name) {
     return Response.json(
-      { message: "고객명은 비워둘 수 없습니다." },
-      { status: 400 },
-    );
-  }
-
-  if (!primaryManager) {
-    return Response.json(
-      { message: "담당자는 비워둘 수 없습니다." },
+      { message: "상호는 비워둘 수 없습니다." },
       { status: 400 },
     );
   }
@@ -89,13 +67,13 @@ export async function POST(request: Request) {
   await db.insert(customersTable).values({
     id: customerId,
     name,
-    segment,
-    primaryManager,
-    statusTag,
+    segment: "외부 고객 DB 사용",
+    primaryManager: "미지정",
+    statusTag: naverCustomerId ? "오늘 확인" : "관찰",
     onboardingStatus: naverCustomerId ? "setup" : "paused",
-    reportingProfile,
-    memoSummary: memoSummary || null,
-    focus,
+    reportingProfile: "월간",
+    memoSummary: null,
+    focus: "채널 상태 확인",
     priorityRank: nextPriority,
     nextReviewAt: now,
     lastActionAt: now,
@@ -116,18 +94,7 @@ export async function POST(request: Request) {
       lastSyncAt: now,
       lastErrorCode: null,
       syncStatus: "idle",
-      syncHeadline: "신규 고객 등록 단계에서 네이버 연결 기준을 저장했습니다.",
-    });
-  }
-
-  if (memoSummary) {
-    await db.insert(internalMemosTable).values({
-      id: makeId("memo", customerId, Date.now()),
-      customerId,
-      body: memoSummary,
-      memoType: "context",
-      createdBy: primaryManager,
-      createdAt: now,
+      syncHeadline: "고객 추가 단계에서 네이버 연결값을 저장했습니다.",
     });
   }
 
@@ -137,28 +104,25 @@ export async function POST(request: Request) {
     suggestionId: null,
     actionType: "customer-created",
     actorType: "operator",
-    actorName: primaryManager,
+    actorName: "YSEO",
     resultStatus: "done",
     externalRequestRef: naverCustomerId || null,
     beforeJson: null,
     afterJson: {
-      statusTag,
-      reportingProfile,
       naverCustomerId: naverCustomerId || null,
     },
     summary: naverCustomerId
-      ? "신규 고객 등록과 네이버 연결 기준 저장을 완료했습니다."
-      : "신규 고객 등록을 완료했습니다.",
+      ? "고객 상태판에 상호와 네이버 연결값을 추가했습니다."
+      : "고객 상태판에 상호를 추가했습니다.",
     executedAt: now,
   });
 
   revalidatePath("/");
   revalidatePath("/customers");
-  revalidatePath("/issues");
 
   return Response.json({
     status: "ok",
-    message: "신규 고객을 등록했습니다.",
+    message: "고객 상태판에 추가했습니다.",
     customerId,
   });
 }

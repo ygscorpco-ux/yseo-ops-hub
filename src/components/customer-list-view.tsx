@@ -6,17 +6,11 @@ import { ArrowUpRightIcon, SearchIcon } from "lucide-react";
 
 import { ChannelBadge } from "@/components/channel-badge";
 import { EmptyState } from "@/components/empty-state";
-import { ReportPreviewDialog } from "@/components/report-preview-dialog";
 import { SectionCard } from "@/components/section-card";
 import { StateChip } from "@/components/state-chip";
 import { StatusBadge } from "@/components/status-badge";
-import { SuggestionReviewDialog } from "@/components/suggestion-review-dialog";
 import type { CustomerListEntry } from "@/lib/yseo/selectors";
-import {
-  compactSecondaryActionClass,
-  fieldClass,
-  secondaryActionClass,
-} from "@/lib/yseo/ui";
+import { compactSecondaryActionClass, fieldClass } from "@/lib/yseo/ui";
 import { formatRelativeTime } from "@/lib/utils";
 
 export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) {
@@ -24,6 +18,11 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
   const [statusFilter, setStatusFilter] = useState("all");
   const [channelFilter, setChannelFilter] = useState("all");
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
+
+  const statusOptions = useMemo(
+    () => ["all", ...new Set(entries.map((entry) => entry.customer.statusTag))],
+    [entries],
+  );
 
   const filteredEntries = useMemo(() => {
     return entries.filter((entry) => {
@@ -41,24 +40,22 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
     });
   }, [channelFilter, deferredSearch, entries, statusFilter]);
 
-  const setupCustomers = entries.filter(
-    (entry) => entry.customer.onboardingStatus !== "active",
-  ).length;
-  const naverLinkedCustomers = entries.filter((entry) =>
-    entry.connections.some((connection) => connection.channelType === "naver-searchad"),
+  const withAlerts = entries.filter((entry) => entry.openIssues.length > 0).length;
+  const withSearchConsole = entries.filter((entry) =>
+    entry.connections.some((connection) => connection.channelType === "search-console"),
   ).length;
 
   return (
     <SectionCard
-      eyebrow="고객 리스트"
-      title="우선순위 고객 목록"
-      description="검색, 상태 태그, 채널 기준으로 고객을 빠르게 걸러 보고 바로 상세와 제안 검토로 이동할 수 있습니다."
+      eyebrow="고객 목록"
+      title="채널 연결 고객"
+      description="고객 기본 정보가 아니라 채널 연결 상태와 최근 상태만 모아서 봅니다."
     >
       <div className="space-y-5">
         <div className="flex flex-wrap items-center gap-2">
           <StateChip label={`전체 ${entries.length}`} tone="slate" />
-          <StateChip label={`온보딩 ${setupCustomers}`} tone="sky" />
-          <StateChip label={`네이버 연결 ${naverLinkedCustomers}`} tone="amber" />
+          <StateChip label={`주의 ${withAlerts}`} tone="amber" />
+          <StateChip label={`Search Console ${withSearchConsole}`} tone="sky" />
         </div>
 
         <form
@@ -70,7 +67,7 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="고객명 또는 요약으로 찾기"
+              placeholder="상호나 최근 상태로 찾기"
               className={`${fieldClass} w-full pl-9`}
             />
           </label>
@@ -80,11 +77,11 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
             onChange={(event) => setStatusFilter(event.target.value)}
             className={fieldClass}
           >
-            <option value="all">전체 상태</option>
-            <option value="긴급 조치">긴급 조치</option>
-            <option value="오늘 확인">오늘 확인</option>
-            <option value="관찰">관찰</option>
-            <option value="정상">정상</option>
+            {statusOptions.map((option) => (
+              <option key={option} value={option}>
+                {option === "all" ? "전체 상태" : option}
+              </option>
+            ))}
           </select>
 
           <select
@@ -114,14 +111,12 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
               <thead>
                 <tr className="text-left text-[12px] font-semibold text-slate-500">
                   <th className="border-b border-slate-200 px-3 py-2.5">고객</th>
-                  <th className="border-b border-slate-200 px-3 py-2.5">상태</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">현재 상태</th>
                   <th className="border-b border-slate-200 px-3 py-2.5">채널</th>
-                  <th className="border-b border-slate-200 px-3 py-2.5">최근 7일 요약</th>
-                  <th className="border-b border-slate-200 px-3 py-2.5">이슈</th>
-                  <th className="border-b border-slate-200 px-3 py-2.5">제안</th>
+                  <th className="border-b border-slate-200 px-3 py-2.5">최근 상태</th>
                   <th className="border-b border-slate-200 px-3 py-2.5">마지막 동기화</th>
                   <th className="border-b border-slate-200 px-3 py-2.5 text-right">
-                    바로 처리
+                    상세
                   </th>
                 </tr>
               </thead>
@@ -129,23 +124,18 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
                 {filteredEntries.map((entry) => (
                   <tr key={entry.customer.id} className="hover:bg-slate-50">
                     <td className="border-b border-slate-100 px-3 py-4 align-top">
-                      <div className="space-y-1">
-                        <Link
-                          href={`/customers/${entry.customer.id}`}
-                          className="font-medium text-slate-950 hover:text-slate-700"
-                        >
-                          {entry.customer.name}
-                        </Link>
-                        <div className="text-xs leading-5 text-slate-500">
-                          {entry.customer.segment} · 담당 {entry.customer.primaryManager}
-                        </div>
-                      </div>
+                      <Link
+                        href={`/customers/${entry.customer.id}`}
+                        className="font-medium text-slate-950 hover:text-slate-700"
+                      >
+                        {entry.customer.name}
+                      </Link>
                     </td>
                     <td className="border-b border-slate-100 px-3 py-4 align-top">
                       <div className="flex flex-wrap gap-2">
                         <StatusBadge value={entry.customer.statusTag} />
-                        {entry.customer.onboardingStatus !== "active" ? (
-                          <StateChip label="온보딩" tone="sky" />
+                        {entry.openIssues.length > 0 ? (
+                          <StateChip label={`경고 ${entry.openIssues.length}`} tone="amber" />
                         ) : null}
                       </div>
                     </td>
@@ -163,12 +153,6 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
                     <td className="border-b border-slate-100 px-3 py-4 align-top text-slate-600">
                       <div className="max-w-sm whitespace-normal">{entry.summaryLine}</div>
                     </td>
-                    <td className="border-b border-slate-100 px-3 py-4 align-top">
-                      {entry.openIssues.length}건
-                    </td>
-                    <td className="border-b border-slate-100 px-3 py-4 align-top">
-                      {entry.pendingSuggestions.length}건
-                    </td>
                     <td className="border-b border-slate-100 px-3 py-4 align-top text-slate-500">
                       {formatRelativeTime(entry.lastSyncAt)}
                     </td>
@@ -178,24 +162,9 @@ export function CustomerListView({ entries }: { entries: CustomerListEntry[] }) 
                           href={`/customers/${entry.customer.id}`}
                           className={`${compactSecondaryActionClass} rounded-md px-2.5 py-1.5 text-xs`}
                         >
-                          상세
+                          상세 보기
                           <ArrowUpRightIcon className="ml-1 inline size-3.5" />
                         </Link>
-                        {entry.pendingSuggestions.length > 0 ? (
-                          <SuggestionReviewDialog
-                            customerName={entry.customer.name}
-                            suggestions={entry.pendingSuggestions}
-                            triggerLabel={`제안 ${entry.pendingSuggestions.length}건`}
-                          />
-                        ) : null}
-                        {entry.latestReport ? (
-                          <ReportPreviewDialog
-                            customerName={entry.customer.name}
-                            report={entry.latestReport}
-                          />
-                        ) : (
-                          <span className={secondaryActionClass}>초안 없음</span>
-                        )}
                       </div>
                     </td>
                   </tr>

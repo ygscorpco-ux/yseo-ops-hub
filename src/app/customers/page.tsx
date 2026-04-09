@@ -11,9 +11,9 @@ export default async function CustomersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="고객 운영"
-        title="고객 리스트"
-        description="상태와 최근 변화 기준으로 우선 고객만 빠르게 봅니다."
+        eyebrow="고객 상태"
+        title="고객별 네이버·구글 상태"
+        description="고객별 채널 연결과 최근 상태만 빠르게 확인합니다."
         actions={<CustomerOnboardingDialog />}
       />
       <CustomerListView entries={entries} />
