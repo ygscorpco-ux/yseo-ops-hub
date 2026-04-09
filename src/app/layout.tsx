@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "YSEO",
-  description: "고객 100개를 빠르게 운영하기 위한 검색 운영 액션 허브",
+  description: "고객 100개를 빠르게 운영하기 위한 검색 운영 허브",
 };
 
 export default function RootLayout({

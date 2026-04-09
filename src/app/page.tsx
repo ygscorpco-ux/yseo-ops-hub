@@ -2,19 +2,15 @@ import Link from "next/link";
 import { FileTextIcon, TriangleAlertIcon } from "lucide-react";
 
 import { ChannelBadge } from "@/components/channel-badge";
-import { GoogleApiReadinessPanel } from "@/components/google-api-readiness-panel";
 import { MetricCard } from "@/components/metric-card";
-import { NaverSyncPanel } from "@/components/naver-sync-panel";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
 import { getDashboardView } from "@/lib/yseo/selectors";
-import {
-  compactSecondaryActionClass,
-  primaryActionClass,
-  secondaryActionClass,
-} from "@/lib/yseo/ui";
+import { compactSecondaryActionClass, secondaryActionClass } from "@/lib/yseo/ui";
 import { formatRelativeTime } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const dashboard = await getDashboardView();
@@ -23,48 +19,19 @@ export default async function HomePage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="운영 허브"
-        title="오늘 바로 처리할 고객과 작업만 보여줍니다"
-        description="YSEO는 정상 고객을 길게 펼쳐 보여주는 분석 도구가 아닙니다. 예외 고객, 연결 이상, 승인 대기 작업을 먼저 모아 운영 속도를 높이는 액션 허브입니다."
+        title="오늘 처리할 고객과 작업"
+        description="정상 고객보다 지금 손대야 할 항목을 먼저 봅니다."
         actions={
           <>
             <Link href="/customers" className={secondaryActionClass}>
               고객 리스트
             </Link>
-            <Link href="/issues" className={primaryActionClass}>
-              작업 큐 열기
+            <Link href="/issues" className={secondaryActionClass}>
+              작업 큐
             </Link>
           </>
         }
       />
-
-      <section className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/60 px-4 py-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-1">
-            <div className="text-[11px] font-semibold tracking-[0.18em] text-amber-700">
-              오늘 우선순위
-            </div>
-            <h2 className="text-base font-semibold tracking-tight text-slate-950">
-              처리 필요 고객 {dashboard.metrics[0]?.value}곳, 긴급 이슈 {dashboard.metrics[1]?.value}
-            </h2>
-            <p className="text-sm leading-6 text-slate-700">
-              연결 이상과 승인 대기 제안을 먼저 보고, 필요할 때만 고객 상세로 내려가는 흐름에 맞춰 정리했습니다.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/issues" className={compactSecondaryActionClass}>
-              작업 우선순위 보기
-            </Link>
-            <Link href="/reports" className={compactSecondaryActionClass}>
-              리포트 초안 보기
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-[1.08fr_0.92fr]">
-        <NaverSyncPanel />
-        <GoogleApiReadinessPanel />
-      </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {dashboard.metrics.map((metric) => (
@@ -86,14 +53,18 @@ export default async function HomePage() {
         ))}
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+      <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <SectionCard
           eyebrow="우선 고객"
           title="먼저 볼 고객"
-          description="상태 태그, 최근 이슈, 마지막 동기화 시각을 기준으로 오늘 손댈 고객만 앞으로 끌어냅니다."
+          action={
+            <Link href="/customers" className={compactSecondaryActionClass}>
+              전체 고객
+            </Link>
+          }
         >
           {dashboard.focusCustomers.length === 0 ? (
-            <p className="text-sm text-slate-600">지금 바로 확인이 필요한 고객이 없습니다.</p>
+            <p className="text-sm text-slate-600">지금 바로 확인할 고객이 없습니다.</p>
           ) : (
             <div className="space-y-4">
               {dashboard.focusCustomers.map((entry, index) => (
@@ -137,71 +108,13 @@ export default async function HomePage() {
           )}
         </SectionCard>
 
-        <div className="space-y-4">
-          <SectionCard
-            eyebrow="연결 점검"
-            title="연결 상태 확인"
-            description="권한 문제, 토큰 만료, 동기화 실패 고객을 먼저 모아 확인합니다."
-          >
-            <div className="space-y-3">
-              {dashboard.connectionWatchlist.map((connection) => (
-                <div
-                  key={connection.id}
-                  className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="font-medium text-slate-950">{connection.customerName}</div>
-                      <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <ChannelBadge channel={connection.channelType} />
-                        <span className="text-xs leading-5 text-slate-500">
-                          {connection.externalPropertyRef ?? connection.externalAccountRef}
-                        </span>
-                      </div>
-                    </div>
-                    <StatusBadge value={connection.connectionStatus} />
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    {connection.syncHeadline}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </SectionCard>
-
-          <SectionCard
-            eyebrow="승인 대기"
-            title="승인 대기 제안"
-            description="바로 실행하지 않고 운영자 검토가 필요한 제안만 따로 모아 둡니다."
-          >
-            <div className="space-y-3">
-              {dashboard.pendingSuggestions.map((suggestion) => (
-                <div
-                  key={suggestion.id}
-                  className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="font-medium text-slate-950">{suggestion.customerName}</div>
-                      <div className="text-sm leading-6 text-slate-600">{suggestion.title}</div>
-                    </div>
-                    <StatusBadge value={suggestion.approvalStatus} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </SectionCard>
-        </div>
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-2">
         <SectionCard
-          eyebrow="상단 이슈"
+          eyebrow="작업 큐"
           title="상단 이슈"
           action={
             <div className="flex items-center gap-2 text-xs leading-5 text-slate-500">
               <TriangleAlertIcon className="size-4" />
-              처리 우선순위 순
+              우선 처리 순서
             </div>
           }
         >
@@ -226,14 +139,51 @@ export default async function HomePage() {
             ))}
           </div>
         </SectionCard>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-2">
+        <SectionCard
+          eyebrow="연결 상태"
+          title="확인 필요한 연결"
+          action={
+            <Link href="/customers" className={compactSecondaryActionClass}>
+              고객 상세
+            </Link>
+          }
+        >
+          <div className="space-y-3">
+            {dashboard.connectionWatchlist.map((connection) => (
+              <div
+                key={connection.id}
+                className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-medium text-slate-950">{connection.customerName}</div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <ChannelBadge channel={connection.channelType} />
+                      <span className="text-xs leading-5 text-slate-500">
+                        {connection.externalPropertyRef ?? connection.externalAccountRef}
+                      </span>
+                    </div>
+                  </div>
+                  <StatusBadge value={connection.connectionStatus} />
+                </div>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {connection.syncHeadline}
+                </p>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
 
         <SectionCard
-          eyebrow="최근 초안"
-          title="최근 리포트 초안"
+          eyebrow="리포트"
+          title="최근 초안"
           action={
             <div className="flex items-center gap-2 text-xs leading-5 text-slate-500">
               <FileTextIcon className="size-4" />
-              자동 초안 기준
+              월말 발행 기준
             </div>
           }
         >
