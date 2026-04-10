@@ -45,7 +45,7 @@ export default async function HomePage() {
             </p>
           </div>
         ) : (
-          <div className="max-h-[28rem] overflow-y-auto px-4 py-3 xl:max-h-[36rem]">
+          <div className="h-[calc(100vh-15rem)] min-h-[36rem] max-h-[48rem] overflow-y-auto px-4 py-3 xl:h-[calc(100vh-13rem)] xl:max-h-[56rem]">
             <div className="space-y-1">
               {attentionCustomers.map((entry, index) => (
                 <div
