@@ -2,7 +2,11 @@ import "server-only";
 
 import { and, desc, eq } from "drizzle-orm";
 
-import { sendAlertEmail } from "@/lib/email/resend";
+import { sendAlertNotification } from "@/lib/alerts/notifier";
+import {
+  buildCustomerDashboardUrl,
+  buildDashboardUrl,
+} from "@/lib/config/app-url";
 import { getDb } from "@/lib/db/client";
 import {
   alertEventsTable,
@@ -90,7 +94,7 @@ function toAlertEvent(row: typeof alertEventsTable.$inferSelect): AlertEvent {
   };
 }
 
-function shouldSendImmediateEmail(severity: IssueSeverity) {
+function shouldSendImmediateAlert(severity: IssueSeverity) {
   return severity === "critical" || severity === "high" || severity === "medium";
 }
 
@@ -420,7 +424,7 @@ export async function evaluateAlertRules(input?: {
 
       const eventId = makeStableId("alert-event", customerId, rule.conditionKey, todayKey);
       const shouldSendNow =
-        input?.mode === "daily-summary" ? false : shouldSendImmediateEmail(rule.severity);
+        input?.mode === "daily-summary" ? false : shouldSendImmediateAlert(rule.severity);
 
       const mailSubject = `[YSEO] ${alert.title}`;
       const mailText = [
@@ -429,11 +433,11 @@ export async function evaluateAlertRules(input?: {
         alert.summary,
         "",
         `Recommended action: ${alert.recommendedAction}`,
-        `Dashboard: https://yseo.vercel.app/customers/${customerId}`,
+        `Dashboard: ${buildCustomerDashboardUrl(customerId)}`,
       ].join("\n");
 
       const sendResult = shouldSendNow
-        ? await sendAlertEmail({
+        ? await sendAlertNotification({
             subject: mailSubject,
             text: mailText,
           })
@@ -486,9 +490,9 @@ export async function evaluateAlertRules(input?: {
       .map((event) => `- ${event.title}: ${event.summary}`)
       .join("\n");
 
-    await sendAlertEmail({
+    await sendAlertNotification({
       subject: `[YSEO] Daily alert summary (${todayKey})`,
-      text: `Triggered alerts\n\n${summaryText}\n\nDashboard: https://yseo.vercel.app`,
+      text: `Triggered alerts\n\n${summaryText}\n\nDashboard: ${buildDashboardUrl()}`,
     });
   }
 

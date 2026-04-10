@@ -76,6 +76,8 @@ YSEO should not become:
 
 - Resend delivery is wired
 - Gmail inbox delivery is supported through `ALERT_EMAIL_TO`
+- Slack incoming webhook delivery is wired
+- Discord webhook delivery is wired
 
 ### Google Business Profile
 
@@ -146,9 +148,12 @@ YSEO should not become:
   - Search Console sync: daily
   - alert summary email: daily
   - month-end report batch: last day of month only
+- free production-ready recommendation
+  - GitHub Actions schedule for hourly NAVER sync
+  - GitHub Actions schedule for twice-daily Search Console sync
+  - Slack or Discord webhook for immediate alert delivery
 - planned target on a paid plan
-  - NAVER sync: hourly
-  - Search Console sync: twice daily
+  - keep the same routes and auth model, move cron execution to Vercel Pro or an external scheduler
 
 ## Stack
 
@@ -158,6 +163,7 @@ YSEO should not become:
 - Neon Postgres
 - Vercel
 - Resend for alert delivery
+- Slack or Discord webhooks for free operator alerts
 
 ## Local development
 
@@ -177,6 +183,7 @@ Create `.env.local` from `.env.example`.
 
 - `DATABASE_URL`
 - `NEON_DATABASE_URL`
+- `YSEO_APP_BASE_URL`
 - `AUTH_SECRET`
 - `AUTH_OPERATOR_ALLOWLIST`
 - `SYNC_API_TOKEN`
@@ -212,8 +219,39 @@ Recommended production callback:
 - `RESEND_API_KEY`
 - `RESEND_FROM_EMAIL`
 - `ALERT_EMAIL_TO`
+- `SLACK_WEBHOOK_URL`
+- `DISCORD_WEBHOOK_URL`
 
-If Resend is not configured, alert events are still stored in the database with `skipped-not-configured` delivery status.
+If none of Resend, Slack, or Discord is configured, alert events are still stored in the database with `skipped-not-configured` delivery status.
+
+## Free scheduler option
+
+For a free hourly-like ops loop, keep Vercel for hosting and use GitHub Actions for scheduling.
+
+### GitHub Actions secrets
+
+- `YSEO_CRON_SECRET`
+  - should match `CRON_SECRET` in Vercel
+- optional repository variable: `YSEO_BASE_URL`
+  - defaults to `https://yseo.vercel.app`
+
+### Workflow routes
+
+The included workflow calls:
+
+- `GET /api/cron/naver-hourly`
+- `GET /api/cron/search-console-daily`
+- `GET /api/cron/daily-alerts`
+- `GET /api/cron/month-end-reports`
+
+### Default GitHub schedule
+
+- NAVER sync: hourly
+- Search Console sync: 09:20 KST and 21:20 KST
+- daily summary alerts: 09:00 KST
+- month-end reports: daily month-end check at 10:10 KST
+
+Vercel Hobby cron remains as a low-frequency fallback. Once GitHub Actions is enabled, that workflow becomes the primary automation path.
 
 ## Database tables
 
