@@ -1,0 +1,20 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/naver-hourly",
+      "schedule": "5 23 * * *"
+    },
+    {
+      "path": "/api/cron/search-console-daily",
+      "schedule": "20 23 * * *"
+    },
+    {
+      "path": "/api/cron/daily-alerts",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/month-end-reports",
+      "schedule": "0 1 28-31 * *"
+    }
+  ]
+}

@@ -15,6 +15,13 @@
       "when": 1775637526092,
       "tag": "0001_faithful_black_tom",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775807272832,
+      "tag": "0002_numerous_zombie",
+      "breakpoints": true
     }
   ]
 }

@@ -6,13 +6,21 @@ import type {
   SuggestionStatus,
   SyncStatus,
 } from "@/lib/yseo/types";
+import type {
+  AlertEvent,
+  ExecutionRequest,
+  RecommendationEvaluation,
+} from "@/lib/yseo/strategy-types";
 
 type StatusValue =
   | CustomerStatusTag
   | ConnectionStatus
   | IssueSeverity
   | SuggestionStatus
-  | SyncStatus;
+  | SyncStatus
+  | RecommendationEvaluation["outcome"]
+  | AlertEvent["deliveryStatus"]
+  | ExecutionRequest["approvalStatus"];
 
 const toneMap: Record<StatusValue, StateChipTone> = {
   "긴급 조치": "rose",
@@ -34,6 +42,12 @@ const toneMap: Record<StatusValue, StateChipTone> = {
   running: "sky",
   succeeded: "emerald",
   failed: "rose",
+  improved: "emerald",
+  degraded: "rose",
+  steady: "slate",
+  "needs-more-time": "amber",
+  "skipped-not-configured": "slate",
+  delivered: "emerald",
 };
 
 const labelMap: Record<StatusValue, string> = {
@@ -56,6 +70,12 @@ const labelMap: Record<StatusValue, string> = {
   running: "실행 중",
   succeeded: "완료",
   failed: "실패",
+  improved: "개선",
+  degraded: "악화",
+  steady: "유지",
+  "needs-more-time": "추가 관찰 필요",
+  "skipped-not-configured": "알림 미설정",
+  delivered: "발송 완료",
 };
 
 interface StatusBadgeProps {

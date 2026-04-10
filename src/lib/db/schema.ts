@@ -181,3 +181,99 @@ export const oauthSessionsTable = pgTable("yseo_oauth_sessions", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const strategyPacksTable = pgTable("yseo_strategy_packs", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  customerId: varchar("customer_id", { length: 64 }).notNull(),
+  masterCustomerId: text("master_customer_id"),
+  status: varchar("status", { length: 16 }).notNull(),
+  sourceType: varchar("source_type", { length: 24 }).notNull(),
+  goalProfile: jsonb("goal_profile").notNull(),
+  strategyProfile: jsonb("strategy_profile").notNull(),
+  researchSummary: jsonb("research_summary").notNull(),
+  packSummary: text("pack_summary").notNull(),
+  keywordClusters: jsonb("keyword_clusters").$type<string[]>().notNull(),
+  negativeKeywords: jsonb("negative_keywords").$type<string[]>().notNull(),
+  copyAngles: jsonb("copy_angles").$type<string[]>().notNull(),
+  landingRisks: jsonb("landing_risks").$type<string[]>().notNull(),
+  searchConsoleWatchpoints: jsonb("search_console_watchpoints").$type<string[]>().notNull(),
+  twoWeekPlan: jsonb("two_week_plan").$type<string[]>().notNull(),
+  fourWeekPlan: jsonb("four_week_plan").$type<string[]>().notNull(),
+  lastBootstrappedAt: timestamp("last_bootstrapped_at", { withTimezone: true }).notNull(),
+  nextReviewAt: timestamp("next_review_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const alertRulesTable = pgTable("yseo_alert_rules", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  customerId: varchar("customer_id", { length: 64 }).notNull(),
+  channelType: varchar("channel_type", { length: 32 }).notNull(),
+  severity: varchar("severity", { length: 16 }).notNull(),
+  name: text("name").notNull(),
+  conditionKey: varchar("condition_key", { length: 64 }).notNull(),
+  configJson: jsonb("config_json").notNull(),
+  recommendedAction: text("recommended_action").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  lastTriggeredAt: timestamp("last_triggered_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const alertEventsTable = pgTable("yseo_alert_events", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  customerId: varchar("customer_id", { length: 64 }).notNull(),
+  channelType: varchar("channel_type", { length: 32 }).notNull(),
+  severity: varchar("severity", { length: 16 }).notNull(),
+  eventType: varchar("event_type", { length: 64 }).notNull(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull(),
+  recommendedAction: text("recommended_action").notNull(),
+  sourceRef: text("source_ref"),
+  payloadJson: jsonb("payload_json").notNull(),
+  deliveryStatus: varchar("delivery_status", { length: 24 }).notNull(),
+  deliveredTo: text("delivered_to"),
+  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+  dedupeKey: text("dedupe_key").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const recommendationRunsTable = pgTable("yseo_recommendation_runs", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  customerId: varchar("customer_id", { length: 64 }).notNull(),
+  source: varchar("source", { length: 24 }).notNull(),
+  status: varchar("status", { length: 16 }).notNull(),
+  summary: text("summary").notNull(),
+  generatedCount: integer("generated_count").default(0).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+});
+
+export const recommendationEvaluationsTable = pgTable("yseo_recommendation_evaluations", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  customerId: varchar("customer_id", { length: 64 }).notNull(),
+  suggestionId: varchar("suggestion_id", { length: 64 }).notNull(),
+  evaluationWindowStart: text("evaluation_window_start").notNull(),
+  evaluationWindowEnd: text("evaluation_window_end").notNull(),
+  outcome: varchar("outcome", { length: 24 }).notNull(),
+  metricsBeforeJson: jsonb("metrics_before_json").notNull(),
+  metricsAfterJson: jsonb("metrics_after_json").notNull(),
+  summary: text("summary").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const executionRequestsTable = pgTable("yseo_execution_requests", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  customerId: varchar("customer_id", { length: 64 }).notNull(),
+  suggestionId: varchar("suggestion_id", { length: 64 }),
+  channelType: varchar("channel_type", { length: 32 }).notNull(),
+  actionType: varchar("action_type", { length: 64 }).notNull(),
+  payloadJson: jsonb("payload_json").notNull(),
+  approvalStatus: varchar("approval_status", { length: 16 }).notNull(),
+  approvedBy: text("approved_by"),
+  executedAt: timestamp("executed_at", { withTimezone: true }),
+  failureReason: text("failure_reason"),
+  externalRequestRef: text("external_request_ref"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
