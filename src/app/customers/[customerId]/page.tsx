@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { StrategyBootstrapDialog } from "@/components/strategy-bootstrap-dialog";
 import { StrategyOpsPanel } from "@/components/strategy-ops-panel";
 import { isGoogleOAuthConfigured } from "@/lib/yseo/google-search-console";
+import { auditNaverCustomerAccess } from "@/lib/yseo/naver-access";
 import { getCustomerDetailView } from "@/lib/yseo/selectors";
 import { getCustomerStrategyWorkspace } from "@/lib/yseo/strategy-hub";
 import {
@@ -40,14 +41,32 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
-  const blockedConnections = detail.connections.filter(
-    (connection) => connection.connectionStatus !== "connected",
-  );
   const naverConnection = detail.connections.find(
     (connection) => connection.channelType === "naver-searchad",
   );
   const searchConsoleConnection = detail.connections.find(
     (connection) => connection.channelType === "search-console",
+  );
+  const naverConnectionAudit = naverConnection
+    ? await auditNaverCustomerAccess(naverConnection.externalAccountRef)
+    : null;
+  const naverAccessMissing = Boolean(
+    naverConnection && naverConnectionAudit?.ok && !naverConnectionAudit.isAccessible,
+  );
+  const displayConnections = detail.connections.map((connection) => {
+    if (!naverAccessMissing || connection.id !== naverConnection?.id) {
+      return connection;
+    }
+
+    return {
+      ...connection,
+      connectionStatus: "attention" as const,
+      lastErrorCode: connection.lastErrorCode ?? "NAVER_ACCESS_MISSING",
+      syncHeadline: `현재 NAVER API 계정에서 ${connection.externalAccountRef} 접근 권한이 확인되지 않았습니다.`,
+    };
+  });
+  const blockedConnections = displayConnections.filter(
+    (connection) => connection.connectionStatus !== "connected",
   );
   const googleOAuthConfigured = isGoogleOAuthConfigured();
   const activeExecutionRequests = strategyWorkspace.executionRequests.filter(
@@ -94,6 +113,20 @@ export default async function CustomerDetailPage({
         </section>
       ) : null}
 
+      {naverAccessMissing ? (
+        <section className="rounded-xl border border-rose-200 bg-rose-50/70 px-4 py-4">
+          <div className="space-y-1">
+            <div className="text-[11px] font-semibold tracking-[0.18em] text-rose-700">
+              NAVER 접근 권한 필요
+            </div>
+            <p className="text-sm leading-6 text-slate-700">
+              현재 API 계정에서는 {naverConnection?.externalAccountRef} 고객에 접근할 수 없습니다.
+              광고주센터에서 멤버 초대 또는 계정 연동을 먼저 완료해야 실제 수집이 됩니다.
+            </p>
+          </div>
+        </section>
+      ) : null}
+
       {blockedConnections.length > 0 ? (
         <section className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-4">
           <div className="space-y-1">
@@ -122,7 +155,7 @@ export default async function CustomerDetailPage({
                 연결 채널
               </div>
               <div className="mt-1.5 text-2xl font-semibold tracking-tight text-slate-950">
-                {detail.connections.length}
+                {displayConnections.length}
               </div>
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
@@ -166,8 +199,8 @@ export default async function CustomerDetailPage({
           }
         >
           <div className="space-y-3">
-            {detail.connections.length > 0 ? (
-              detail.connections.map((connection) => (
+            {displayConnections.length > 0 ? (
+              displayConnections.map((connection) => (
                 <div
                   key={connection.id}
                   className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
