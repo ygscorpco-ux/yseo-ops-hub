@@ -8,7 +8,10 @@ import {
   primaryActionClass,
   secondaryActionClass,
 } from "@/lib/yseo/ui";
-import { getSearchConsoleSelectionSession } from "@/lib/yseo/google-search-console";
+import {
+  canConnectSearchConsolePermissionLevel,
+  getSearchConsoleSelectionSession,
+} from "@/lib/yseo/google-search-console";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +66,11 @@ export default async function SearchConsoleConnectPage({
     );
   }
 
+  const connectableSiteEntries = session.siteEntries.filter((site) =>
+    canConnectSearchConsolePermissionLevel(site.permissionLevel),
+  );
+  const hiddenPropertyCount = session.siteEntries.length - connectableSiteEntries.length;
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -87,7 +95,7 @@ export default async function SearchConsoleConnectPage({
         title="연결할 Search Console 속성"
         description="운영 권한으로 조회 가능한 property 목록입니다. 나중에 다른 property로 바꿔도 기존 고객 데이터는 유지됩니다."
       >
-        {session.siteEntries.length === 0 ? (
+        {connectableSiteEntries.length === 0 ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
             이 Google 계정에서 접근 가능한 Search Console property가 없습니다.
           </div>
@@ -100,7 +108,7 @@ export default async function SearchConsoleConnectPage({
             <input type="hidden" name="oauthState" value={state} />
 
             <div className="space-y-3">
-              {session.siteEntries.map((site, index) => (
+              {connectableSiteEntries.map((site, index) => (
                 <label
                   key={site.siteUrl}
                   className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 transition hover:border-slate-950"
@@ -121,6 +129,12 @@ export default async function SearchConsoleConnectPage({
                 </label>
               ))}
             </div>
+
+            {hiddenPropertyCount > 0 ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
+                권한이 부족한 property {hiddenPropertyCount}개는 목록에서 숨겼습니다.
+              </div>
+            ) : null}
 
             <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
               저장하면 YSEO가 최근 7일 Search Analytics 합계를 먼저 조회해서 연결 상태를 검증합니다.

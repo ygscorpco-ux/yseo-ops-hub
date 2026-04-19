@@ -22,6 +22,11 @@ const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const SEARCH_CONSOLE_SITES_URL = "https://www.googleapis.com/webmasters/v3/sites";
 const SEARCH_CONSOLE_SCOPE = "https://www.googleapis.com/auth/webmasters.readonly";
 const SEARCH_CONSOLE_PROVIDER = "google-search-console";
+const SEARCH_CONSOLE_CONNECTABLE_PERMISSION_LEVELS = new Set([
+  "siteOwner",
+  "siteFullUser",
+  "siteRestrictedUser",
+]);
 
 interface GoogleTokenResponse {
   access_token: string;
@@ -114,6 +119,10 @@ export function isGoogleOAuthConfigured() {
   const config = getOAuthConfig();
 
   return Boolean(config.clientId && config.clientSecret && config.redirectUri);
+}
+
+export function canConnectSearchConsolePermissionLevel(permissionLevel: string) {
+  return SEARCH_CONSOLE_CONNECTABLE_PERMISSION_LEVELS.has(permissionLevel.trim());
 }
 
 function requireGoogleOAuthConfig() {
@@ -410,6 +419,12 @@ export async function connectSearchConsoleProperty(input: {
 
   if (!selectedProperty) {
     throw new Error("Selected property was not returned by Google Search Console.");
+  }
+
+  if (!canConnectSearchConsolePermissionLevel(selectedProperty.permissionLevel)) {
+    throw new Error(
+      "이 property는 Search Console 검증 쿼리를 실행할 권한이 부족합니다. siteOwner, siteFullUser, 또는 siteRestrictedUser property를 선택해 주세요.",
+    );
   }
 
   const accessToken = await refreshSearchConsoleAccessToken(payload.refreshToken);
